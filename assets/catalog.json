@@ -1,0 +1,450 @@
+{
+  "000.png": {
+    "width": 256,
+    "height": 16
+  },
+  "1.png": {
+    "width": 112,
+    "height": 112
+  },
+  "2.png": {
+    "width": 128,
+    "height": 112
+  },
+  "3.png": {
+    "width": 128,
+    "height": 64
+  },
+  "4.png": {
+    "width": 128,
+    "height": 112
+  },
+  "5.png": {
+    "width": 112,
+    "height": 112
+  },
+  "6.png": {
+    "width": 128,
+    "height": 144
+  },
+  "7.png": {
+    "width": 128,
+    "height": 112
+  },
+  "8.png": {
+    "width": 80,
+    "height": 112
+  },
+  "9.png": {
+    "width": 128,
+    "height": 144
+  },
+  "arrow.png": {
+    "width": 18,
+    "height": 7
+  },
+  "b1.png": {
+    "width": 240,
+    "height": 270
+  },
+  "b2.png": {
+    "width": 240,
+    "height": 270
+  },
+  "b3.png": {
+    "width": 240,
+    "height": 270
+  },
+  "battleface.png": {
+    "width": 120,
+    "height": 25
+  },
+  "biaoqing.png": {
+    "width": 61,
+    "height": 96
+  },
+  "bingying.png": {
+    "width": 30,
+    "height": 32
+  },
+  "BOX1.png": {
+    "width": 32,
+    "height": 16
+  },
+  "BOX2.png": {
+    "width": 32,
+    "height": 16
+  },
+  "button.png": {
+    "width": 24,
+    "height": 12
+  },
+  "CG1.png": {
+    "width": 240,
+    "height": 160
+  },
+  "cunchudian.png": {
+    "width": 11,
+    "height": 21
+  },
+  "currency.png": {
+    "width": 128,
+    "height": 360
+  },
+  "daoguang.png": {
+    "width": 134,
+    "height": 60
+  },
+  "diejb.png": {
+    "width": 32,
+    "height": 15
+  },
+  "diesb.png": {
+    "width": 32,
+    "height": 15
+  },
+  "feng.png": {
+    "width": 133,
+    "height": 34
+  },
+  "fengmian.png": {
+    "width": 240,
+    "height": 320
+  },
+  "fenmu.png": {
+    "width": 31,
+    "height": 36
+  },
+  "fire.png": {
+    "width": 76,
+    "height": 27
+  },
+  "gengjing.png": {
+    "width": 91,
+    "height": 65
+  },
+  "gengml.png": {
+    "width": 201,
+    "height": 42
+  },
+  "gengmltouxiang.png": {
+    "width": 53,
+    "height": 40
+  },
+  "gjtouxiang.png": {
+    "width": 90,
+    "height": 71
+  },
+  "gmltouxiang.png": {
+    "width": 79,
+    "height": 66
+  },
+  "icon.png": {
+    "width": 56,
+    "height": 56
+  },
+  "jianren.png": {
+    "width": 23,
+    "height": 30
+  },
+  "jiantou.png": {
+    "width": 22,
+    "height": 8
+  },
+  "jt.png": {
+    "width": 9,
+    "height": 10
+  },
+  "lanzxtouxiang.png": {
+    "width": 53,
+    "height": 40
+  },
+  "lfytouxiang.png": {
+    "width": 76,
+    "height": 74
+  },
+  "linfy.png": {
+    "width": 287,
+    "height": 54
+  },
+  "lingfytouxiang.png": {
+    "width": 53,
+    "height": 40
+  },
+  "litd.png": {
+    "width": 61,
+    "height": 64
+  },
+  "liuyun.png": {
+    "width": 95,
+    "height": 17
+  },
+  "liyc.png": {
+    "width": 46,
+    "height": 58
+  },
+  "lizitexiao.png": {
+    "width": 30,
+    "height": 20
+  },
+  "loading.png": {
+    "width": 318,
+    "height": 46
+  },
+  "lqsg.png": {
+    "width": 88,
+    "height": 80
+  },
+  "ltdtouxiang.png": {
+    "width": 85,
+    "height": 81
+  },
+  "mainmenu.png": {
+    "width": 211,
+    "height": 63
+  },
+  "menu_28.png": {
+    "width": 44,
+    "height": 5
+  },
+  "mon1.png": {
+    "width": 33,
+    "height": 40
+  },
+  "mon2.png": {
+    "width": 65,
+    "height": 53
+  },
+  "mon3.png": {
+    "width": 38,
+    "height": 49
+  },
+  "mon4.png": {
+    "width": 52,
+    "height": 54
+  },
+  "mon5.png": {
+    "width": 48,
+    "height": 57
+  },
+  "mon6.png": {
+    "width": 31,
+    "height": 39
+  },
+  "money.png": {
+    "width": 10,
+    "height": 9
+  },
+  "nalan.png": {
+    "width": 154,
+    "height": 29
+  },
+  "nalan_da.png": {
+    "width": 171,
+    "height": 38
+  },
+  "name.png": {
+    "width": 111,
+    "height": 13
+  },
+  "niugao.png": {
+    "width": 71,
+    "height": 56
+  },
+  "nlzxtouxiang.png": {
+    "width": 71,
+    "height": 68
+  },
+  "over.png": {
+    "width": 73,
+    "height": 78
+  },
+  "par.png": {
+    "width": 10,
+    "height": 10
+  },
+  "qiang.png": {
+    "width": 5,
+    "height": 20
+  },
+  "sanjiantou.png": {
+    "width": 18,
+    "height": 11
+  },
+  "script.png": {
+    "width": 5,
+    "height": 5
+  },
+  "shanguang.png": {
+    "width": 54,
+    "height": 53
+  },
+  "shaqi.png": {
+    "width": 52,
+    "height": 30
+  },
+  "shenhuan.png": {
+    "width": 103,
+    "height": 85
+  },
+  "shenjie.png": {
+    "width": 103,
+    "height": 85
+  },
+  "shenpei.png": {
+    "width": 103,
+    "height": 85
+  },
+  "shenqiang.png": {
+    "width": 103,
+    "height": 85
+  },
+  "shenstm.png": {
+    "width": 104,
+    "height": 65
+  },
+  "shensuo.png": {
+    "width": 103,
+    "height": 85
+  },
+  "shuzi.png": {
+    "width": 91,
+    "height": 7
+  },
+  "smallfy.png": {
+    "width": 189,
+    "height": 32
+  },
+  "smallgj.png": {
+    "width": 47,
+    "height": 32
+  },
+  "smallgml.png": {
+    "width": 144,
+    "height": 26
+  },
+  "smallhsljw.png": {
+    "width": 48,
+    "height": 32
+  },
+  "smalljb.png": {
+    "width": 96,
+    "height": 32
+  },
+  "smalljlyj.png": {
+    "width": 92,
+    "height": 32
+  },
+  "smalljqb.png": {
+    "width": 94,
+    "height": 58
+  },
+  "smalljws.png": {
+    "width": 26,
+    "height": 30
+  },
+  "smallltd.png": {
+    "width": 49,
+    "height": 32
+  },
+  "smallnr.png": {
+    "width": 48,
+    "height": 32
+  },
+  "smallsr.png": {
+    "width": 48,
+    "height": 32
+  },
+  "smallwydh.png": {
+    "width": 96,
+    "height": 37
+  },
+  "smallxqj.png": {
+    "width": 47,
+    "height": 32
+  },
+  "smallyc.png": {
+    "width": 64,
+    "height": 39
+  },
+  "smallyl.png": {
+    "width": 48,
+    "height": 31
+  },
+  "smallzy.png": {
+    "width": 33,
+    "height": 35
+  },
+  "sp.png": {
+    "width": 128,
+    "height": 128
+  },
+  "tuzi.png": {
+    "width": 25,
+    "height": 15
+  },
+  "uishuzi1.png": {
+    "width": 78,
+    "height": 10
+  },
+  "uishuzi2.png": {
+    "width": 102,
+    "height": 12
+  },
+  "ui_frame.png": {
+    "width": 22,
+    "height": 22
+  },
+  "ui_menu1.png": {
+    "width": 96,
+    "height": 16
+  },
+  "ui_menu2.png": {
+    "width": 14,
+    "height": 112
+  },
+  "UI_zhandou.png": {
+    "width": 110,
+    "height": 18
+  },
+  "wenzi.png": {
+    "width": 25,
+    "height": 143
+  },
+  "wenzi1.png": {
+    "width": 52,
+    "height": 13
+  },
+  "x6.png": {
+    "width": 113,
+    "height": 29
+  },
+  "x6_2008.png": {
+    "width": 60,
+    "height": 10
+  },
+  "xiangzi.png": {
+    "width": 37,
+    "height": 15
+  },
+  "xiaotx.png": {
+    "width": 55,
+    "height": 16
+  },
+  "yangzx.png": {
+    "width": 41,
+    "height": 76
+  },
+  "yuelei.png": {
+    "width": 36,
+    "height": 72
+  },
+  "yuelin.png": {
+    "width": 59,
+    "height": 32
+  },
+  "yuelinda.png": {
+    "width": 67,
+    "height": 47
+  }
+}

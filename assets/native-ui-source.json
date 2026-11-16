@@ -1,0 +1,91 @@
+{
+  "source": "manjianghong2-original.jar / battle.bin / sysui.bin",
+  "nativeViewport": [
+    240,
+    320
+  ],
+  "battlePages": {
+    "partyFrame": 2,
+    "commands": 3,
+    "partyVitals": 4,
+    "skillsAndItems": 9,
+    "reward": 16,
+    "shop": 18
+  },
+  "partyFrame": [
+    0,
+    257,
+    239,
+    62
+  ],
+  "commands": {
+    "source": "UI_zhandou.png",
+    "cell": [
+      22,
+      18
+    ],
+    "order": [
+      "attack",
+      "skill",
+      "item",
+      "guard",
+      "shop"
+    ],
+    "x": [
+      24,
+      66,
+      108,
+      150,
+      192
+    ],
+    "y": 237
+  },
+  "partyFaces": {
+    "source": "battleface.png",
+    "cell": [
+      40,
+      25
+    ],
+    "order": [
+      "hero",
+      "fei",
+      "lan"
+    ],
+    "x": [
+      22,
+      99,
+      176
+    ],
+    "y": 261
+  },
+  "colors": {
+    "paper": "#ffefce",
+    "ink": "#000000",
+    "selection": "#ff0000",
+    "hp": "#ff0000",
+    "mp": "#00ffff"
+  },
+  "touchAdaptation": "Responsive layout; command targets at least 44px high; two-column skill/item preview and explicit confirmation; party portraits select the active actor. The original Java screen coordinate layout is a reference, not executed by the web renderer.",
+  "assets": [
+    {
+      "file": "assets/UI_zhandou.png",
+      "sha256": "62647f64e27449d99224c01b3204a2d400666517f072991d96e07523ade7bbde",
+      "unchangedFromJar": true
+    },
+    {
+      "file": "assets/battleface.png",
+      "sha256": "630401b9e93934ee911286b20fb082c2f20f039cd2dbf5bc28570cfdb8d2d83f",
+      "unchangedFromJar": true
+    },
+    {
+      "file": "assets/ui_frame.png",
+      "sha256": "8efc403058166d1c019a26434c042ea9bf608ee181f965766027de474d5d4fa3",
+      "unchangedFromJar": true
+    },
+    {
+      "file": "assets/button.png",
+      "sha256": "d4bac0bc061825580406fbf91ac9aaa03170fce93f96d043e08652188e0e10b5",
+      "unchangedFromJar": true
+    }
+  ]
+}

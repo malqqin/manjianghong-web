@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+# Historical super-resolution backups are not used by the current game.
+assets/enhanced/*.png
+assets/enhanced/*.webp

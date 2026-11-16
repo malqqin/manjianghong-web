@@ -1,0 +1,1506 @@
+{
+  "scale": 4,
+  "originalsUnmodified": true,
+  "assets": [
+    {
+      "asset": "map-0.webp",
+      "source": "map-0.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        464,
+        448
+      ],
+      "size": [
+        1856,
+        1792
+      ],
+      "sourceSHA256": "ad828505268133f777e7220e28a042a3308ffa3cd51f4c792bffb144479b3467"
+    },
+    {
+      "asset": "map-1.webp",
+      "source": "map-1.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        624,
+        416
+      ],
+      "size": [
+        2496,
+        1664
+      ],
+      "sourceSHA256": "f89adf27c5eb820b1a5661f6c7c0321b38cc03a2ac6b5e2dc012dfda7693fdb9"
+    },
+    {
+      "asset": "map-10.webp",
+      "source": "map-10.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        640,
+        384
+      ],
+      "size": [
+        2560,
+        1536
+      ],
+      "sourceSHA256": "c0ec55ee5777fe127568f1f9f516eb353d410394e0990281e5211d9ec1cfb2e7"
+    },
+    {
+      "asset": "map-11.webp",
+      "source": "map-11.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        480,
+        640
+      ],
+      "size": [
+        1920,
+        2560
+      ],
+      "sourceSHA256": "270820ca4f67c48a1d4e995ac625db896520eb3f009f05f816003827a5160e17"
+    },
+    {
+      "asset": "map-12.webp",
+      "source": "map-12.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        544,
+        496
+      ],
+      "size": [
+        2176,
+        1984
+      ],
+      "sourceSHA256": "16b2c89dc795d283e3c8a6eea674164a24f143ea9a75c9352c803cf91f161646"
+    },
+    {
+      "asset": "map-13.webp",
+      "source": "map-13.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        480,
+        480
+      ],
+      "size": [
+        1920,
+        1920
+      ],
+      "sourceSHA256": "50d55fca1062f70f8d77f0486532d461be4f17558799589ac4ce0232c365b93e"
+    },
+    {
+      "asset": "map-14.webp",
+      "source": "map-14.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        512,
+        480
+      ],
+      "size": [
+        2048,
+        1920
+      ],
+      "sourceSHA256": "357a85fd77f8d3685c0869af9b228175c40570314796a985d4d4aa908a1aab9f"
+    },
+    {
+      "asset": "map-15.webp",
+      "source": "map-15.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        336,
+        400
+      ],
+      "size": [
+        1344,
+        1600
+      ],
+      "sourceSHA256": "6b078b0e57be553903d90545a5acc5b5ca6eac7fd4cf62e4e41934184d6b5c70"
+    },
+    {
+      "asset": "map-16.webp",
+      "source": "map-16.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        560,
+        352
+      ],
+      "size": [
+        2240,
+        1408
+      ],
+      "sourceSHA256": "ca6078e9d36e427cf96b16931a1bf8dbed8743f015980299df71927324ace1aa"
+    },
+    {
+      "asset": "map-17.webp",
+      "source": "map-17.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "cd3dfd4f6b0fa49c16f3bcca871b15b16dd4aec23c676ec544dc9aa63f8605fb"
+    },
+    {
+      "asset": "map-18.webp",
+      "source": "map-18.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        336,
+        480
+      ],
+      "size": [
+        1344,
+        1920
+      ],
+      "sourceSHA256": "3de3da983831035d0c583add00e7fb79ed18f277aeea4329290b5f0ba7770225"
+    },
+    {
+      "asset": "map-19.webp",
+      "source": "map-19.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        512,
+        448
+      ],
+      "size": [
+        2048,
+        1792
+      ],
+      "sourceSHA256": "c3fc211d4843d267ad485cd4530ee67610386f8f64fe3dd33bc207bc58747c5e"
+    },
+    {
+      "asset": "map-2.webp",
+      "source": "map-2.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        432,
+        496
+      ],
+      "size": [
+        1728,
+        1984
+      ],
+      "sourceSHA256": "07f2054d5bc8f9c3c6a4daf686c016deb12b9eb4d9fd436ecfc284ce4002479b"
+    },
+    {
+      "asset": "map-20.webp",
+      "source": "map-20.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        368,
+        448
+      ],
+      "size": [
+        1472,
+        1792
+      ],
+      "sourceSHA256": "eda99cf8ff7329c776e4fbac35408fc54a2b0f1755fd245f508fcd12591ec889"
+    },
+    {
+      "asset": "map-21.webp",
+      "source": "map-21.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        384,
+        480
+      ],
+      "size": [
+        1536,
+        1920
+      ],
+      "sourceSHA256": "121473af757d5924c2dd314336dbcab0ac3e37d7ed400eb2cb5730eadad4edb4"
+    },
+    {
+      "asset": "map-22.webp",
+      "source": "map-22.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        608,
+        448
+      ],
+      "size": [
+        2432,
+        1792
+      ],
+      "sourceSHA256": "1817586a3700ab2513980f2c54d43293a59b85898358d72ba957f4f9ce913ebc"
+    },
+    {
+      "asset": "map-23.webp",
+      "source": "map-23.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "db230723776c2dea54e633a496b522fa4f97771b908adfea00c5bef13980191a"
+    },
+    {
+      "asset": "map-24.webp",
+      "source": "map-24.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        256,
+        320
+      ],
+      "size": [
+        1024,
+        1280
+      ],
+      "sourceSHA256": "0ead09b24f39ee772f7aa1fd619bc7277cada9e72a96947651b13d267a489e50"
+    },
+    {
+      "asset": "map-25.webp",
+      "source": "map-25.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        256,
+        320
+      ],
+      "size": [
+        1024,
+        1280
+      ],
+      "sourceSHA256": "558fdb2e65a24d612a3def29866f8c8910d1e50bef6471690cbebefc4a301728"
+    },
+    {
+      "asset": "map-26.webp",
+      "source": "map-26.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        496,
+        336
+      ],
+      "size": [
+        1984,
+        1344
+      ],
+      "sourceSHA256": "08fbd6cb67d67bf2938974dfa8e5c171696864b63b30a1a363b9f87ba498ea5d"
+    },
+    {
+      "asset": "map-27.webp",
+      "source": "map-27.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "1a0eea1152b4cbfe7168f618439b21409dca0fd229a43cd880115654aa5aa53b"
+    },
+    {
+      "asset": "map-28.webp",
+      "source": "map-28.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "05ac8a4167117b637d0b8041f8c6033f6d1646581c76a37ee9a48ce9d6bf9324"
+    },
+    {
+      "asset": "map-29.webp",
+      "source": "map-29.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "febbefe2663eb2ca55fb843fe2f8d41a254a97ed2dd5d5f73026d2b1471c4874"
+    },
+    {
+      "asset": "map-3.webp",
+      "source": "map-3.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        352,
+        320
+      ],
+      "size": [
+        1408,
+        1280
+      ],
+      "sourceSHA256": "28a6226cc28a72feb4eb326b748a16b79b020405da8ce1a7ec1da3dd27bc0d4a"
+    },
+    {
+      "asset": "map-30.webp",
+      "source": "map-30.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        256,
+        320
+      ],
+      "size": [
+        1024,
+        1280
+      ],
+      "sourceSHA256": "2d8c52b5ded98427cf18022ba02a68818459154df2b56467a42aae98e97df670"
+    },
+    {
+      "asset": "map-31.webp",
+      "source": "map-31.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "335ffa350efb3966d64a31ec8f874bce028dee9e950ab3308ee1a5b8705062fd"
+    },
+    {
+      "asset": "map-32.webp",
+      "source": "map-32.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        256,
+        320
+      ],
+      "size": [
+        1024,
+        1280
+      ],
+      "sourceSHA256": "224a8c48b1066f2b90c74e3ced52a53de020c6a386d83e068f73c243bba7b6fe"
+    },
+    {
+      "asset": "map-33.webp",
+      "source": "map-33.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "815fe32c3a4ed64d0b3479d6f186243e93c7ab0c74daf3b3043f5330be9c51d9"
+    },
+    {
+      "asset": "map-34.webp",
+      "source": "map-34.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "19f0412f1aa26bb46d5c570a3e16cbaa64c733477dc22393a22fcf0e2247b0d0"
+    },
+    {
+      "asset": "map-35.webp",
+      "source": "map-35.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        416,
+        496
+      ],
+      "size": [
+        1664,
+        1984
+      ],
+      "sourceSHA256": "59dc28e57a0fabccc874002018735695d1fcca3255189ae4274ecb0770d26c83"
+    },
+    {
+      "asset": "map-36.webp",
+      "source": "map-36.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        176,
+        208
+      ],
+      "size": [
+        704,
+        832
+      ],
+      "sourceSHA256": "d14d8de6b9382adc75f760a1081e6064a5feb18ecae4f62ab3358bdefe119d12"
+    },
+    {
+      "asset": "map-37.webp",
+      "source": "map-37.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "e015e7aca51fbb5321f22b554697154b457cbdad6bf58832ca2a022a58ac075a"
+    },
+    {
+      "asset": "map-38.webp",
+      "source": "map-38.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        448,
+        320
+      ],
+      "size": [
+        1792,
+        1280
+      ],
+      "sourceSHA256": "5fbba602a0ba8beda4349617d4c1347c02b2efb1d5f97a4e5afc051fad4be7ae"
+    },
+    {
+      "asset": "map-39.webp",
+      "source": "map-39.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        304,
+        400
+      ],
+      "size": [
+        1216,
+        1600
+      ],
+      "sourceSHA256": "ddf87dad0dfd44c7821ce776ef9db1292fc0960c8e49e506751a8634d3182d98"
+    },
+    {
+      "asset": "map-4.webp",
+      "source": "map-4.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        528,
+        480
+      ],
+      "size": [
+        2112,
+        1920
+      ],
+      "sourceSHA256": "9bf98e6009f7f00066c8806e26b6991cbdb35e30660322ad97054ece70741098"
+    },
+    {
+      "asset": "map-40.webp",
+      "source": "map-40.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        256,
+        320
+      ],
+      "size": [
+        1024,
+        1280
+      ],
+      "sourceSHA256": "27c3266dce3933ac61d5e42694d6b7404ed3588d649cf53cf6fbfcd5ae999ab1"
+    },
+    {
+      "asset": "map-41.webp",
+      "source": "map-41.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        320
+      ],
+      "size": [
+        960,
+        1280
+      ],
+      "sourceSHA256": "3f316c7fea8ef6a1dcd16303aaade6a5b781e3d0607f49f8248067fa7fa554e0"
+    },
+    {
+      "asset": "map-5.webp",
+      "source": "map-5.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        640,
+        480
+      ],
+      "size": [
+        2560,
+        1920
+      ],
+      "sourceSHA256": "3321cf7bd5c513c376f9b268ed88ddea02ada7b3471777729485a6ac591c62bc"
+    },
+    {
+      "asset": "map-6.webp",
+      "source": "map-6.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        496,
+        496
+      ],
+      "size": [
+        1984,
+        1984
+      ],
+      "sourceSHA256": "cf7b59822ea4f070a235f2992be8870194258b19f319b4bde8997002a39815c9"
+    },
+    {
+      "asset": "map-7.webp",
+      "source": "map-7.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        512,
+        576
+      ],
+      "size": [
+        2048,
+        2304
+      ],
+      "sourceSHA256": "91ce62d73a2100c045cd6d5ec08bd029910266953394985ee47285dfd76f8279"
+    },
+    {
+      "asset": "map-8.webp",
+      "source": "map-8.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        416,
+        400
+      ],
+      "size": [
+        1664,
+        1600
+      ],
+      "sourceSHA256": "9a74afc99d18b72ce5a778a628fb2d8877ad4e76fc579bcad635d1757226f742"
+    },
+    {
+      "asset": "map-9.webp",
+      "source": "map-9.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        480,
+        640
+      ],
+      "size": [
+        1920,
+        2560
+      ],
+      "sourceSHA256": "27cb8b88f7aea888afa049792d4e6c7239743cd2098af80e5a4e082f7b75049e"
+    },
+    {
+      "asset": "portrait-hero.webp",
+      "source": "lfytouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        76,
+        74
+      ],
+      "size": [
+        304,
+        296
+      ],
+      "sourceSHA256": "922c7d69a80a8cec789730b44b1535dd44130c92b47bb5011a0009f01ed890b4"
+    },
+    {
+      "asset": "portrait-fei.webp",
+      "source": "gmltouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        79,
+        66
+      ],
+      "size": [
+        316,
+        264
+      ],
+      "sourceSHA256": "f295c509bddafcb3b9723045f219bd96bda732bac14de44cb0c695a305984169"
+    },
+    {
+      "asset": "portrait-lan.webp",
+      "source": "nlzxtouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        71,
+        68
+      ],
+      "size": [
+        284,
+        272
+      ],
+      "sourceSHA256": "7fe75a6d4d0908184545211cc11f3743f44deb24f42b84512d1604e9e3b8de95"
+    },
+    {
+      "asset": "portrait-geng.webp",
+      "source": "gjtouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        90,
+        71
+      ],
+      "size": [
+        360,
+        284
+      ],
+      "sourceSHA256": "80e7cf3569a3536cd32b54c258c966dca0a8ab1aefddc454c0cd713681750b75"
+    },
+    {
+      "asset": "portrait-boss.webp",
+      "source": "ltdtouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        85,
+        81
+      ],
+      "size": [
+        340,
+        324
+      ],
+      "sourceSHA256": "b9785593ac1fc242105d891db18761dccceb19000e1ca96a8ee09c60cd88af20"
+    },
+    {
+      "asset": "portrait-li.webp",
+      "source": "lfytouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        76,
+        74
+      ],
+      "size": [
+        304,
+        296
+      ],
+      "sourceSHA256": "922c7d69a80a8cec789730b44b1535dd44130c92b47bb5011a0009f01ed890b4"
+    },
+    {
+      "asset": "portrait-lin.webp",
+      "source": "nlzxtouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        71,
+        68
+      ],
+      "size": [
+        284,
+        272
+      ],
+      "sourceSHA256": "7fe75a6d4d0908184545211cc11f3743f44deb24f42b84512d1604e9e3b8de95"
+    },
+    {
+      "asset": "portrait-general.webp",
+      "source": "ltdtouxiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        85,
+        81
+      ],
+      "size": [
+        340,
+        324
+      ],
+      "sourceSHA256": "b9785593ac1fc242105d891db18761dccceb19000e1ca96a8ee09c60cd88af20"
+    },
+    {
+      "asset": "item-wood.png",
+      "source": "shenqiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "a9fb294796dc3f8b3eddd6dbfcf95f1bf34b161c41829ab1d3c38bb7e3a7b1d6"
+    },
+    {
+      "asset": "item-iron.png",
+      "source": "shenqiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "a9fb294796dc3f8b3eddd6dbfcf95f1bf34b161c41829ab1d3c38bb7e3a7b1d6"
+    },
+    {
+      "asset": "item-silver.png",
+      "source": "shenqiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "a9fb294796dc3f8b3eddd6dbfcf95f1bf34b161c41829ab1d3c38bb7e3a7b1d6"
+    },
+    {
+      "asset": "item-liquan.png",
+      "source": "shenqiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "a9fb294796dc3f8b3eddd6dbfcf95f1bf34b161c41829ab1d3c38bb7e3a7b1d6"
+    },
+    {
+      "asset": "item-spear.png",
+      "source": "shenqiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "a9fb294796dc3f8b3eddd6dbfcf95f1bf34b161c41829ab1d3c38bb7e3a7b1d6"
+    },
+    {
+      "asset": "item-sword.png",
+      "source": "shenqiang.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "a9fb294796dc3f8b3eddd6dbfcf95f1bf34b161c41829ab1d3c38bb7e3a7b1d6"
+    },
+    {
+      "asset": "item-ring.png",
+      "source": "shenjie.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "dfa12e3c648bb8d4d5210740631856250bd77ae07838abb916e143d53dccb18a"
+    },
+    {
+      "asset": "item-bronze.png",
+      "source": "shenjie.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "dfa12e3c648bb8d4d5210740631856250bd77ae07838abb916e143d53dccb18a"
+    },
+    {
+      "asset": "item-linglong.png",
+      "source": "shenhuan.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "9b2fe6a29813c34fe5c56668d09d16f3ea414294597711a789dd8dfbbfeddab7"
+    },
+    {
+      "asset": "item-jade.png",
+      "source": "shenpei.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "999be30c19e0a4ad4029976e94d22631de3b892273cbcd4a5c11adf53ff33c3b"
+    },
+    {
+      "asset": "item-plainjade.png",
+      "source": "shenpei.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "999be30c19e0a4ad4029976e94d22631de3b892273cbcd4a5c11adf53ff33c3b"
+    },
+    {
+      "asset": "item-koi.png",
+      "source": "shenpei.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "999be30c19e0a4ad4029976e94d22631de3b892273cbcd4a5c11adf53ff33c3b"
+    },
+    {
+      "asset": "item-frostjade.png",
+      "source": "shenpei.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        103,
+        85
+      ],
+      "size": [
+        412,
+        340
+      ],
+      "sourceSHA256": "999be30c19e0a4ad4029976e94d22631de3b892273cbcd4a5c11adf53ff33c3b"
+    },
+    {
+      "asset": "item-flower.png",
+      "source": "flower.png",
+      "method": "xbrz",
+      "sourceSize": [
+        24,
+        28
+      ],
+      "size": [
+        96,
+        112
+      ],
+      "sourceSHA256": "3458719d90a2d2600df2beda546c77dd5f525f39e4d1247d496274a95be0cf24"
+    },
+    {
+      "asset": "item-antidote.png",
+      "source": "ui_menu1.png",
+      "method": "xbrz",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "size": [
+        64,
+        64
+      ],
+      "sourceSHA256": "28399b78f8328422c08afd7baa9040f16d4a6e8655c99a26a464e45c652669e4"
+    },
+    {
+      "asset": "item-potion.png",
+      "source": "ui_menu1.png",
+      "method": "xbrz",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "size": [
+        64,
+        64
+      ],
+      "sourceSHA256": "28399b78f8328422c08afd7baa9040f16d4a6e8655c99a26a464e45c652669e4"
+    },
+    {
+      "asset": "item-book.png",
+      "source": "ui_menu1.png",
+      "method": "xbrz",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "size": [
+        64,
+        64
+      ],
+      "sourceSHA256": "28399b78f8328422c08afd7baa9040f16d4a6e8655c99a26a464e45c652669e4"
+    },
+    {
+      "asset": "landscape-cave.webp",
+      "source": "b1.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        270
+      ],
+      "size": [
+        960,
+        1080
+      ],
+      "sourceSHA256": "322f4f95344c7f1ab9ffd221e93939b3681ec8c7046fc764aa4f2cf2b7bdb2fd"
+    },
+    {
+      "asset": "landscape-camp.webp",
+      "source": "b2.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        236
+      ],
+      "size": [
+        960,
+        944
+      ],
+      "sourceSHA256": "48b3f7988b3a1f9dd7131cbf64b3f37469ce530a9a84e6a59c81c1a4e285705c"
+    },
+    {
+      "asset": "landscape-forest.webp",
+      "source": "b3.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        248
+      ],
+      "size": [
+        960,
+        992
+      ],
+      "sourceSHA256": "444f3c6aee7675bd1a4b93ad661ea7d702bcc5f4910c0469c5a5a6d4fb206e0d"
+    },
+    {
+      "asset": "landscape-snow.webp",
+      "source": "b3.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        248
+      ],
+      "size": [
+        960,
+        992
+      ],
+      "sourceSHA256": "444f3c6aee7675bd1a4b93ad661ea7d702bcc5f4910c0469c5a5a6d4fb206e0d"
+    },
+    {
+      "asset": "landscape-tomb.webp",
+      "source": "b1.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        270
+      ],
+      "size": [
+        960,
+        1080
+      ],
+      "sourceSHA256": "322f4f95344c7f1ab9ffd221e93939b3681ec8c7046fc764aa4f2cf2b7bdb2fd"
+    },
+    {
+      "asset": "title.webp",
+      "source": "CG1.png",
+      "method": "Real-ESRGAN-x4v3",
+      "sourceSize": [
+        240,
+        160
+      ],
+      "size": [
+        960,
+        640
+      ],
+      "sourceSHA256": "6e3dc3f7ef0791f7bcda314997fd18b9e2f7b8f424cea8ab829c64015ed24e0e"
+    },
+    {
+      "asset": "sprite-0.webp",
+      "source": "sprite-0.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "e9276c68c12decc421c40ce2dfe1013e0d5c871de19b5076c271ce6b8c6fab6e"
+    },
+    {
+      "asset": "sprite-1.webp",
+      "source": "sprite-1.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "9a6c606e75725772c192b8e7689d29c695b2becb6d7e2df629a4b001c19b9fc1"
+    },
+    {
+      "asset": "sprite-2.webp",
+      "source": "sprite-2.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "38387b268aa1f0248ff0e84ec0a8c7c212509015bec82aa8845516a997e4a3d6"
+    },
+    {
+      "asset": "sprite-7.webp",
+      "source": "sprite-7.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "8352094548c3658f6fdf36eae2b8d8bf7d4fedaf0b12053c0ef6f5873c7980d1"
+    },
+    {
+      "asset": "sprite-9.webp",
+      "source": "sprite-9.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "ba4d97781253a6b5617bfb75709d6c766bbca0fa918eca20ece2979b8c5a589b"
+    },
+    {
+      "asset": "sprite-13.webp",
+      "source": "sprite-13.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "b81fc828cc94d0e10601c2ef58fc63143378a6bec48e835304021da78c40a4d1"
+    },
+    {
+      "asset": "sprite-27.webp",
+      "source": "sprite-27.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "837a8876a970830582da3146de8e69b82366b5dfe43566082af3f98328fd769d"
+    },
+    {
+      "asset": "sprite-39.webp",
+      "source": "sprite-39.png",
+      "method": "xbrz",
+      "sourceSize": [
+        128,
+        64
+      ],
+      "size": [
+        512,
+        256
+      ],
+      "sourceSHA256": "a6dc78eb8312497dc748a25790c1c2449977981151213c5aaa1fe68e8ca32610"
+    },
+    {
+      "asset": "sprite-40.webp",
+      "source": "sprite-40.png",
+      "method": "xbrz",
+      "sourceSize": [
+        128,
+        64
+      ],
+      "size": [
+        512,
+        256
+      ],
+      "sourceSHA256": "9c84552b033257d64a6150a2cbdf03777b81d66ca9c56f4cf6efd4f6c754c19f"
+    },
+    {
+      "asset": "sprite-43.webp",
+      "source": "flower.png",
+      "method": "xbrz",
+      "sourceSize": [
+        64,
+        64
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "sourceSHA256": "3458719d90a2d2600df2beda546c77dd5f525f39e4d1247d496274a95be0cf24"
+    },
+    {
+      "asset": "battle-linfy.webp",
+      "source": "battle-linfy.png",
+      "method": "xbrz",
+      "sourceSize": [
+        1248,
+        96
+      ],
+      "size": [
+        4992,
+        384
+      ],
+      "sourceSHA256": "293681cafaffe7d0f3373f4736cd0dc52fb0fea7c4b93d5890c33dfe1e282179"
+    },
+    {
+      "asset": "battle-nalan_da.webp",
+      "source": "battle-nalan_da.png",
+      "method": "xbrz",
+      "sourceSize": [
+        1152,
+        96
+      ],
+      "size": [
+        4608,
+        384
+      ],
+      "sourceSHA256": "e39c0985782d752aa03c14628ef8ce296daa0598d9472e0b8d5203b434fe6878"
+    },
+    {
+      "asset": "battle-gengml.webp",
+      "source": "battle-gengml.png",
+      "method": "xbrz",
+      "sourceSize": [
+        1248,
+        96
+      ],
+      "size": [
+        4992,
+        384
+      ],
+      "sourceSHA256": "1748c71d566bd58d26ed8e79b90d0ed267ef6ed2537f3310858e339e2d828679"
+    },
+    {
+      "asset": "battle-mon1.webp",
+      "source": "battle-mon1.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "0236379741e013bf0f679167d5302a361217aa968576e9c0cca448872d92fd78"
+    },
+    {
+      "asset": "battle-mon2.webp",
+      "source": "battle-mon2.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "b8c8b52f096a6eefd346db08b0c04730a30fe6b6934ea0487d4570417ca804a7"
+    },
+    {
+      "asset": "battle-mon4.webp",
+      "source": "battle-mon4.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "e20dcfdd013058b378442dd192b2d79cd0eda631a6ed83d3c56965d7c71b55da"
+    },
+    {
+      "asset": "battle-litd.webp",
+      "source": "battle-litd.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "626011266977c06a840726dd0af1dd270b6a3a8b9f1f64113ced414d50d6b73b"
+    },
+    {
+      "asset": "battle-gengjing.webp",
+      "source": "battle-gengjing.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "1b995b57165642fd351f464f36e05c3b0f03b553916eaaf525deef76973d2f79"
+    },
+    {
+      "asset": "battle-golden.webp",
+      "source": "shenstm.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "2681a659861a74cca6af9581f5a66342bd02ce3407b3b09b31efbef2e5187abb"
+    },
+    {
+      "asset": "sprite-44.webp",
+      "source": "shenstm.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "2681a659861a74cca6af9581f5a66342bd02ce3407b3b09b31efbef2e5187abb"
+    },
+    {
+      "asset": "battle-taimeng.webp",
+      "source": "shenstm.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "2681a659861a74cca6af9581f5a66342bd02ce3407b3b09b31efbef2e5187abb"
+    },
+    {
+      "asset": "sprite-45.webp",
+      "source": "shenstm.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "2681a659861a74cca6af9581f5a66342bd02ce3407b3b09b31efbef2e5187abb"
+    },
+    {
+      "asset": "battle-snake.webp",
+      "source": "lqsg.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "b270977932b65122fa3f508afd49fc4df9b9b6dbf8bee096317243dead481183"
+    },
+    {
+      "asset": "sprite-46.webp",
+      "source": "lqsg.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "b270977932b65122fa3f508afd49fc4df9b9b6dbf8bee096317243dead481183"
+    },
+    {
+      "asset": "battle-ghost.webp",
+      "source": "mon3.png",
+      "method": "xbrz",
+      "sourceSize": [
+        480,
+        96
+      ],
+      "size": [
+        1920,
+        384
+      ],
+      "sourceSHA256": "5f47724c6b01d77d1c3645fa5518bb13408c3c8099af5931ee1f706c44561cd8"
+    },
+    {
+      "asset": "sprite-47.webp",
+      "source": "mon3.png",
+      "method": "xbrz",
+      "sourceSize": [
+        2304,
+        64
+      ],
+      "size": [
+        9216,
+        256
+      ],
+      "sourceSHA256": "5f47724c6b01d77d1c3645fa5518bb13408c3c8099af5931ee1f706c44561cd8"
+    },
+    {
+      "asset": "sprite-17.webp",
+      "source": "feng.png",
+      "method": "xbrz",
+      "sourceSize": [
+        576,
+        64
+      ],
+      "size": [
+        2304,
+        256
+      ],
+      "sourceSHA256": "769910a6f3369ea6b2e1769968670b72359d7416d8b3333b17fb1fa2dfb0342d"
+    },
+    {
+      "asset": "fx-wave.webp",
+      "source": "liuyun.png",
+      "method": "xbrz",
+      "sourceSize": [
+        384,
+        64
+      ],
+      "size": [
+        1536,
+        256
+      ],
+      "sourceSHA256": "f9991f2ae83418d49cab5c8360d622f35218e8253683d012e0cb6a27d6928ba8"
+    },
+    {
+      "asset": "fx-aura.webp",
+      "source": "shanguang.png",
+      "method": "xbrz",
+      "sourceSize": [
+        192,
+        64
+      ],
+      "size": [
+        768,
+        256
+      ],
+      "sourceSHA256": "5d2e5f262c3028142fb5f9d0aa913230eac6fac83d6852ebd03628a4038b5254"
+    },
+    {
+      "asset": "fx-fire.webp",
+      "source": "fire.png",
+      "method": "xbrz",
+      "sourceSize": [
+        128,
+        64
+      ],
+      "size": [
+        512,
+        256
+      ],
+      "sourceSHA256": "5cb324f2a2ec4d7b294dd720fba10545b3618b1b7f8a2b5f80feada32e1c71e4"
+    },
+    {
+      "asset": "native-currency.webp",
+      "source": "currency.png",
+      "method": "xbrz",
+      "sourceSize": [
+        128,
+        360
+      ],
+      "size": [
+        512,
+        1440
+      ],
+      "sourceSHA256": "d99e6eb439e2bd0637bc20e9e39ce321697352dacc560620215e6b4e151e2796"
+    },
+    {
+      "asset": "battle-cursor.png",
+      "source": "arrow.png",
+      "method": "nearest crop (0,0,9,7)",
+      "sourceSize": [
+        18,
+        7
+      ],
+      "crop": [
+        0,
+        0,
+        9,
+        7
+      ],
+      "size": [
+        36,
+        28
+      ],
+      "sourceSHA256": "2ba1e55bbc4803f462d33baa3d64f9943f4d62afc2e33d574ac962181f44367f"
+    },
+    {
+      "asset": "hero-flight.webp",
+      "source": "sprite-0.png",
+      "method": "xbrz",
+      "sourceSize": [
+        512,
+        64
+      ],
+      "size": [
+        2048,
+        256
+      ],
+      "sourceSHA256": "e9276c68c12decc421c40ce2dfe1013e0d5c871de19b5076c271ce6b8c6fab6e",
+      "nativeFrames": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    }
+  ]
+}

@@ -1,0 +1,983 @@
+[
+  {
+    "asset": "map-0.png",
+    "source": "map-0.png",
+    "size": [
+      464,
+      448
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-1.png",
+    "source": "map-1.png",
+    "size": [
+      624,
+      416
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-10.png",
+    "source": "map-10.png",
+    "size": [
+      640,
+      384
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-11.png",
+    "source": "map-11.png",
+    "size": [
+      480,
+      640
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-12.png",
+    "source": "map-12.png",
+    "size": [
+      544,
+      496
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-13.png",
+    "source": "map-13.png",
+    "size": [
+      480,
+      480
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-14.png",
+    "source": "map-14.png",
+    "size": [
+      512,
+      480
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-15.png",
+    "source": "map-15.png",
+    "size": [
+      336,
+      400
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-16.png",
+    "source": "map-16.png",
+    "size": [
+      560,
+      352
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-17.png",
+    "source": "map-17.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-18.png",
+    "source": "map-18.png",
+    "size": [
+      336,
+      480
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-19.png",
+    "source": "map-19.png",
+    "size": [
+      512,
+      448
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-2.png",
+    "source": "map-2.png",
+    "size": [
+      432,
+      496
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-20.png",
+    "source": "map-20.png",
+    "size": [
+      368,
+      448
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-21.png",
+    "source": "map-21.png",
+    "size": [
+      384,
+      480
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-22.png",
+    "source": "map-22.png",
+    "size": [
+      608,
+      448
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-23.png",
+    "source": "map-23.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-24.png",
+    "source": "map-24.png",
+    "size": [
+      256,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-25.png",
+    "source": "map-25.png",
+    "size": [
+      256,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-26.png",
+    "source": "map-26.png",
+    "size": [
+      496,
+      336
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-27.png",
+    "source": "map-27.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-28.png",
+    "source": "map-28.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-29.png",
+    "source": "map-29.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-3.png",
+    "source": "map-3.png",
+    "size": [
+      352,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-30.png",
+    "source": "map-30.png",
+    "size": [
+      256,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-31.png",
+    "source": "map-31.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-32.png",
+    "source": "map-32.png",
+    "size": [
+      256,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-33.png",
+    "source": "map-33.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-34.png",
+    "source": "map-34.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-35.png",
+    "source": "map-35.png",
+    "size": [
+      416,
+      496
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-36.png",
+    "source": "map-36.png",
+    "size": [
+      176,
+      208
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-37.png",
+    "source": "map-37.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-38.png",
+    "source": "map-38.png",
+    "size": [
+      448,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-39.png",
+    "source": "map-39.png",
+    "size": [
+      304,
+      400
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-4.png",
+    "source": "map-4.png",
+    "size": [
+      528,
+      480
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-40.png",
+    "source": "map-40.png",
+    "size": [
+      256,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-41.png",
+    "source": "map-41.png",
+    "size": [
+      240,
+      320
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-5.png",
+    "source": "map-5.png",
+    "size": [
+      640,
+      480
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-6.png",
+    "source": "map-6.png",
+    "size": [
+      496,
+      496
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-7.png",
+    "source": "map-7.png",
+    "size": [
+      512,
+      576
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-8.png",
+    "source": "map-8.png",
+    "size": [
+      416,
+      400
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "map-9.png",
+    "source": "map-9.png",
+    "size": [
+      480,
+      640
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-hero.png",
+    "source": "lfytouxiang.png",
+    "size": [
+      76,
+      74
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-fei.png",
+    "source": "gmltouxiang.png",
+    "size": [
+      79,
+      66
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-lan.png",
+    "source": "nlzxtouxiang.png",
+    "size": [
+      71,
+      68
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-geng.png",
+    "source": "gjtouxiang.png",
+    "size": [
+      90,
+      71
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-boss.png",
+    "source": "ltdtouxiang.png",
+    "size": [
+      85,
+      81
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-li.png",
+    "source": "lfytouxiang.png",
+    "size": [
+      76,
+      74
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-lin.png",
+    "source": "nlzxtouxiang.png",
+    "size": [
+      71,
+      68
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "portrait-general.png",
+    "source": "ltdtouxiang.png",
+    "size": [
+      85,
+      81
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-wood.png",
+    "source": "shenqiang.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-iron.png",
+    "source": "shenqiang.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-silver.png",
+    "source": "shenqiang.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-liquan.png",
+    "source": "shenqiang.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-spear.png",
+    "source": "shenqiang.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-sword.png",
+    "source": "shenqiang.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-ring.png",
+    "source": "shenjie.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-bronze.png",
+    "source": "shenjie.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-linglong.png",
+    "source": "shenhuan.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-jade.png",
+    "source": "shenpei.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-plainjade.png",
+    "source": "shenpei.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-koi.png",
+    "source": "shenpei.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-frostjade.png",
+    "source": "shenpei.png",
+    "size": [
+      103,
+      85
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-flower.png",
+    "source": "flower.png",
+    "size": [
+      24,
+      28
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-antidote.png",
+    "source": "ui_menu1.png",
+    "size": [
+      16,
+      16
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-potion.png",
+    "source": "ui_menu1.png",
+    "size": [
+      16,
+      16
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "item-book.png",
+    "source": "ui_menu1.png",
+    "size": [
+      16,
+      16
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "landscape-cave.png",
+    "source": "b1.png",
+    "size": [
+      240,
+      270
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "landscape-camp.png",
+    "source": "b2.png",
+    "size": [
+      240,
+      236
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "landscape-forest.png",
+    "source": "b3.png",
+    "size": [
+      240,
+      248
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "landscape-snow.png",
+    "source": "b3.png",
+    "size": [
+      240,
+      248
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "landscape-tomb.png",
+    "source": "b1.png",
+    "size": [
+      240,
+      270
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "title.png",
+    "source": "CG1.png",
+    "size": [
+      240,
+      160
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-0.png",
+    "source": "sprite-0.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-1.png",
+    "source": "sprite-1.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-2.png",
+    "source": "sprite-2.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-7.png",
+    "source": "sprite-7.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-9.png",
+    "source": "sprite-9.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-13.png",
+    "source": "sprite-13.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-27.png",
+    "source": "sprite-27.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-39.png",
+    "source": "sprite-39.png",
+    "size": [
+      128,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-40.png",
+    "source": "sprite-40.png",
+    "size": [
+      128,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-43.png",
+    "source": "flower.png",
+    "size": [
+      64,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-linfy.png",
+    "source": "battle-linfy.png",
+    "size": [
+      1248,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-nalan_da.png",
+    "source": "battle-nalan_da.png",
+    "size": [
+      1152,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-gengml.png",
+    "source": "battle-gengml.png",
+    "size": [
+      1248,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-mon1.png",
+    "source": "battle-mon1.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-mon2.png",
+    "source": "battle-mon2.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-mon4.png",
+    "source": "battle-mon4.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-litd.png",
+    "source": "battle-litd.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-gengjing.png",
+    "source": "battle-gengjing.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-golden.png",
+    "source": "shenstm.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-44.png",
+    "source": "shenstm.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-taimeng.png",
+    "source": "shenstm.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-45.png",
+    "source": "shenstm.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-snake.png",
+    "source": "lqsg.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-46.png",
+    "source": "lqsg.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-ghost.png",
+    "source": "mon3.png",
+    "size": [
+      480,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-47.png",
+    "source": "mon3.png",
+    "size": [
+      2304,
+      64
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "sprite-17.png",
+    "source": "feng.png",
+    "size": [
+      2304,
+      256
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "fx-wave.png",
+    "source": "liuyun.png",
+    "size": [
+      1536,
+      256
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "fx-aura.png",
+    "source": "shanguang.png",
+    "size": [
+      768,
+      256
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "fx-fire.png",
+    "source": "fire.png",
+    "size": [
+      512,
+      256
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "native-currency.png",
+    "source": "currency.png",
+    "size": [
+      128,
+      360
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "battle-cursor.png",
+    "source": "arrow.png",
+    "size": [
+      9,
+      7
+    ],
+    "method": "unscaled lossless original pixels"
+  },
+  {
+    "asset": "flight-0.png",
+    "source": "sprite-0.png + sprite-0.png sword",
+    "size": [
+      512,
+      64
+    ],
+    "method": "native frames/cropped sword; no resampling"
+  },
+  {
+    "asset": "flight-1.png",
+    "source": "sprite-1.png + sprite-0.png sword",
+    "size": [
+      512,
+      64
+    ],
+    "method": "native frames/cropped sword; no resampling"
+  },
+  {
+    "asset": "flight-2.png",
+    "source": "sprite-2.png + sprite-0.png sword",
+    "size": [
+      512,
+      64
+    ],
+    "method": "native frames/cropped sword; no resampling"
+  },
+  {
+    "asset": "slash.png",
+    "source": "slash.png",
+    "size": [
+      288,
+      96
+    ],
+    "method": "unscaled lossless original pixels"
+  }
+]
