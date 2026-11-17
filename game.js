@@ -271,7 +271,7 @@ function checkEncounterContact() {
 }
 function frame(now) {
   const dt = Math.min((now - previousTime) / 1000, .05); previousTime = now; animTime += dt * 1000;
-  step(dt); if (!battle && !scenePending && !document.hidden) drawWorld();
+  step(dt); syncGuideUI(); if (!battle && !scenePending && !document.hidden) drawWorld();
   if (battle && !document.hidden) updateBattleAnimations(now);
   if (started && !battle && now - lastSave > 25000) saveGame(true);
   requestAnimationFrame(frame);
@@ -334,8 +334,7 @@ function renderHUD() {
   $('#quest-title').textContent = $('#mobile-quest-title').textContent = q.title;
   $('#quest-text').textContent = $('#mobile-quest-text').textContent = q.text;
   $('#quest-number').textContent = state.journey ? `${Math.min(state.journey.index + 1, STORY_COUNT)} / ${STORY_COUNT}` : ['壹', '壹', '贰', '贰', '叁', '肆', '终', '终'][state.stage];
-  $('#guide-button').innerHTML = state.journey?.completed ? '重温终章 <span>↗</span>' : !state.journey && state.stage === 7 ? '进入原作主线 <span>↗</span>' : '循迹引路 <span>↗</span>';
-  $('.quest-guide').textContent = state.journey?.completed ? '终章 ↗' : !state.journey && state.stage === 7 ? '主线 ↗' : '引路 ↗';
+  guidePresentationKey = ''; syncGuideUI();
   $('#flight-button').classList.toggle('hidden', !state.journey);
   $('#flight-button').textContent = state.journey?.flying ? '落地 ↓' : '御剑 ↑';
   $('#map-tip span:last-child').textContent = state.journey ? '点地面行走 · 接触旋风遇敌' : '点地面行走 · 点人物交谈';
@@ -346,6 +345,18 @@ function renderHUD() {
     const c = characters[id]; return `<div class="party-mini"><img src="assets/${c.portrait}" alt="${c.name}"><div><strong>${c.name}</strong><small>${c.role}</small></div><span class="party-state">${id === 'hero' ? (state.journey ? '执枪' : '执剑') : '同行'}</span></div>`;
   }).join('');
 }
+let guidePresentationKey = '';
+function syncGuideUI() {
+  const guiding = !!(started && guideActive && !dialogue && !battle && !storyPlayer?.running && (path.length || scenePending));
+  const ending = !!state.journey?.completed, legacy = !state.journey && state.stage === 7;
+  const key = `${guiding}:${ending}:${legacy}`;
+  if (key === guidePresentationKey) return;
+  guidePresentationKey = key;
+  $('#app').classList.toggle('is-guiding', guiding);
+  $('#guide-button').innerHTML = `${ending ? '重温终章' : legacy ? '进入原作主线' : guiding ? '正在循迹' : '循迹引路'} <span aria-hidden="true">↗</span>`;
+  $('.quest-guide').textContent = ending ? '终章 ↗' : legacy ? '主线 ↗' : guiding ? '前往中' : '引路 ↗';
+  $('.guide-note').textContent = guiding ? '正在循线前往 · 点地图可改道' : '循线而行，点地图可自由改道';
+}
 function guide() {
   if(storyPlayer?.running)return;
   if (!started || dialogue || battle || scenePending) return;
@@ -354,6 +365,7 @@ function guide() {
     guideActive = true; const q = objective();
     if (q.map !== state.map) return transition(q.map);
     const target = currentEntities().find(e => e.id === 'main-goal');
+    if (!target) { guideActive = false; return toast('线索正在展开，请稍候再试。'); }
     toast(`循迹前往 · ${q.title}`); return moveTo(target, target);
   }
   if (state.stage === 7) return legacyBridge();
@@ -958,6 +970,7 @@ function endingPanel() {
 function openSheet(title, content, subtitle = '江湖随身笺', variant = '') {
   if (!activeSheet) sheetReturnFocus = document.activeElement;
   activeSheet = title;
+  $('#sheet-backdrop').dataset.kind = variant;
   $('#sheet-backdrop').classList.toggle('battle-menu', variant === 'battle-menu');
   $('#sheet-title').textContent = title; $('#sheet-subtitle').textContent = subtitle;
   $('#sheet-close').classList.toggle('hidden', !!battle?.outcome);
@@ -1008,14 +1021,41 @@ function mapPanel() {
   $$('[data-travel]').forEach(button => button.onclick = () => { const id = Number(button.dataset.travel); if (unlocked(id)) { closeSheet(); guideActive = false; transition(id); } });
   $('#map-guide').onclick = guide;
 }
-function settingsPanel() {
-  if (battle || dialogue) return toast('请先完成眼前这段交锋或对话。');
-  openSheet('行旅设置', `<div class="settings-row"><span>山间清音</span><button id="setting-sound">${settings.sound ? '已开启' : '已关闭'}</button></div><div class="settings-row"><span>行走速度</span><button id="setting-speed">${settings.fast ? '轻功疾行' : '从容步行'}</button></div><div class="settings-row"><span>减少动态效果</span><button id="setting-motion">${settings.reducedMotion ? '已开启' : '已关闭'}</button></div><div class="settings-help"><h3>指尖游江湖</h3><p>点地面自动寻路；点人物走近交谈。点「引路」可前往当前目标。地图支持拖动查看，双击回到身边。</p><p>战斗先点我方人物或人物卡，头顶箭头表示当前人物；点敌人选目标，再选招式。每人独立下令，治疗和用药可选择队友。重击来时可防御。键盘也可用方向键 / WASD 行走、空格继续对话。</p><p>进度自动保存在当前浏览器。换设备前，可以导出存档，再在新设备导入。</p></div><div class="button-row"><button class="secondary-button" id="export-save" ${!started ? 'disabled' : ''}>导出存档</button><button class="secondary-button" id="import-save">导入存档</button></div><input class="file-input" id="save-file" type="file" accept=".json,application/json"><div class="button-row"><button class="secondary-button" id="to-title">回到扉页</button><button class="secondary-button" id="about-game">关于此篇</button></div><p style="font-size:10px;color:#9aa28a">手机竖屏与横屏均可。安装到主屏幕后可离线游玩。</p>`, '从容些，江湖不会走远');
-  $('#setting-sound').onclick = () => { settings.sound = !settings.sound; applySettings(); settingsPanel(); };
-  $('#setting-speed').onclick = () => { settings.fast = !settings.fast; applySettings(); settingsPanel(); };
-  $('#setting-motion').onclick = () => { settings.reducedMotion = !settings.reducedMotion; applySettings(); settingsPanel(); };
+function returnToTitle() {
+  closeSheet(); if (started) saveGame(true);
+  path = []; destination = null; pendingInteraction = null; guideActive = false; stopFollowers();
+  started = false; music.stop(); refreshTitle(); $('#title-screen').classList.remove('hidden');
+}
+function gameMenu() {
+  if (battle || dialogue || storyPlayer?.running) return toast('请先完成眼前这段交锋或对话。');
+  const entries = started ? [
+    ['resume', '继续游戏', '返回江湖'], ['party', '人物状态', '同伴'], ['bag', '物品装备', '行囊'],
+    ['journal', '任务记录', '江湖记'], ['settings', '游戏设置', ''], ['help', '游戏帮助', ''],
+    ['about', '关于游戏', ''], ['title', '返回封面', '自动保存']
+  ] : [['resume', '返回封面', ''], ['settings', '游戏设置', ''], ['help', '游戏帮助', ''], ['about', '关于游戏', '']];
+  openSheet('游戏菜单', `${started ? `<div class="menu-location">${escapeHTML(currentChapter())}<br>${escapeHTML($('#place-name').textContent)}</div>` : ''}<div class="native-menu-list">${entries.map(([id,label,hint]) => `<button data-menu="${id}">${label}${hint ? `<small>${hint}</small>` : ''}</button>`).join('')}</div>`, '满江红二 · 铁骑红颜', 'game-menu');
+  const actions = {resume:closeSheet, party:()=>showPanel('party'), bag:()=>showPanel('bag'), journal:()=>showPanel('journal'), settings:()=>settingsPanel(gameMenu), help:()=>helpPanel(gameMenu), about:()=>aboutPanel(gameMenu), title:returnToTitle};
+  $$('[data-menu]').forEach(button => button.onclick = actions[button.dataset.menu]);
+}
+function helpPanel(back = gameMenu) {
+  openSheet('游戏帮助', `<div class="help-section"><span>壹</span><div><h3>行走与引路</h3><p>点地面自动寻路，点人物走近交谈。点「引路」前往当前主线目标，途中点地图可自由改道。拖动查看地图，双击回到身边。</p></div></div><div class="help-section"><span>贰</span><div><h3>交锋与施法</h3><p>先点我方人物或下方头像，头顶箭头表示当前人物；再点敌方选定目标，选择攻击、技能、道具或防御。每位同伴独立下令，治疗与用药可选择队友。</p></div></div><div class="help-section"><span>叁</span><div><h3>存档与按键</h3><p>进度自动保存在当前浏览器。换设备前在设置中导出存档，再导入新设备。电脑支持方向键 / WASD 行走，空格 / Enter 继续，G 引路，J 江湖记，Esc 关闭菜单。</p></div></div><button class="secondary-button menu-back" id="help-back">返回</button>`, '指尖行江湖');
+  $('#help-back').onclick = back;
+}
+function aboutPanel(back = gameMenu) {
+  openSheet('关于游戏', '<div class="about-mark">满江红二 · 铁骑红颜</div><p>原版作品由仙掌软件制作。本网页版使用原作像素素材、六章文字与过场记录，适配手机点触和电脑操作。</p><p>已串联 67 个主线节点及 1,877 条对白、旁白，支持逐人手动战斗、原版技能动画、装备、御剑与两项汴京支线。封面、米黄窗框和红字菜单参考 Java 原版。</p><p>回合编排、伤害公式和任务触发使用网页实现；原版速度算法、全部隐藏事件及完整引擎行为仍有差异。</p><div class="about-links"><a href="https://github.com/malqqin/manjianghong-web" target="_blank" rel="noopener noreferrer">GitHub 项目 ↗</a></div><button class="secondary-button menu-back" id="about-back">返回</button>', '原作六章 · 触屏重制');
+  $('#about-back').onclick = back;
+}
+function settingsPanel(back = gameMenu) {
+  if (battle || dialogue || storyPlayer?.running) return toast('请先完成眼前这段交锋或对话。');
+  openSheet('游戏设置', `<div class="settings-row"><span>游戏声音<small>背景音乐与交锋音效</small></span><button id="setting-sound" role="switch" aria-label="游戏声音" aria-checked="${settings.sound}">${settings.sound ? '开' : '关'}</button></div><div class="settings-row"><span>行走速度<small>探索地图时的移动速度</small></span><button id="setting-speed" role="switch" aria-label="快速行走" aria-checked="${settings.fast}">${settings.fast ? '快速' : '普通'}</button></div><div class="settings-row"><span>减少动态<small>减少画面闪动与震动</small></span><button id="setting-motion" role="switch" aria-label="减少动态" aria-checked="${settings.reducedMotion}">${settings.reducedMotion ? '开' : '关'}</button></div><p class="settings-caption">随行即存。换设备前，可将这段江湖导出留存。</p><div class="button-row"><button class="secondary-button" id="export-save" ${!started && !saved ? 'disabled' : ''}>导出存档</button><button class="secondary-button" id="import-save">导入存档</button></div><input class="file-input" id="save-file" type="file" accept=".json,application/json"><button class="secondary-button menu-back" id="settings-back">返回</button>`, '满江红二 · 铁骑红颜', 'settings');
+  const toggle = (id,key,labels) => { const button = $(id); button.onclick = () => { settings[key] = !settings[key]; applySettings(); button.setAttribute('aria-checked', String(settings[key])); button.textContent = labels[Number(settings[key])]; }; };
+  toggle('#setting-sound','sound',['关','开']);
+  toggle('#setting-speed','fast',['普通','快速']);
+  toggle('#setting-motion','reducedMotion',['关','开']);
+  $('#settings-back').onclick = back;
   $('#export-save').onclick = () => {
-    saveGame(true); const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    if (started) saveGame(true);
+    const blob = new Blob([JSON.stringify(started ? state : saved, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = '满江红-江湖存档.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
   $('#import-save').onclick = () => $('#save-file').click();
@@ -1027,13 +1067,12 @@ function settingsPanel() {
       forceCloseSheet(); state = imported; started = true; $('#title-screen').classList.add('hidden'); transition(state.map, [state.tile.x, state.tile.y]); applySettings(); toast('前缘已续，欢迎归来。');
     } catch { toast('这份存档无法读取，请选择本游戏导出的 JSON 存档。'); }
   };
-  $('#to-title').onclick = () => { closeSheet(); if (started) saveGame(true); started = false; music.stop(); refreshTitle(); $('#title-screen').classList.remove('hidden'); };
-  $('#about-game').onclick = () => openSheet('关于铁骑红颜', '<p>触屏重制版使用原版 JAR 解码得到的六章文字与过场次序，整理为 67 个可推进的主线节点，收录 1,877 条对白、旁白（含战后文字）。画面使用原始像素素材，已停用四倍超分图；人物四方向分别使用原作的正面、背面和侧面帧。战斗图标、小头像与米黄窗框沿用原图，布局参考原版 battle.bin 与 sysui.bin，并适配触屏。</p><p>支持逐人手动战斗、原版技能动画和箭头、队员独立生命与精气、治疗复活、自动寻路、御剑飞行、装备、枪法研习、异常状态、战斗补给、汴京字画与地窖两项支线。技能一级精气消耗和目标/施法动画对应原记录。回合编排、伤害公式及任务触发采用网页实现；原版速度/行动资格算法、全部隐藏事件与原引擎行为尚未逐条复刻。</p><p>旧四幕改编存档会先备份，再从凤凰山主线启程。原版作品由仙掌软件制作。</p>', '原作文本 · 原作像素素材');
 }
 function refreshTitle() {
+  saved = null;
   try { saved = validateSave(JSON.parse(localStorage.getItem(SAVE_KEY) || 'null')); } catch {}
-  $('#continue-game').classList.toggle('hidden', !saved);
-  if (saved) { $('#continue-detail').textContent = saved.journey ? `原作主线 · ${Math.min(saved.journey.index+1,STORY_COUNT)}/${STORY_COUNT}` : `${chapters[saved.stage]} · 旧篇`; $('#start-game').textContent = '另启新程 →'; }
+  $('#continue-game').disabled = !saved;
+  $('#continue-detail').textContent = saved ? saved.journey ? `主线 ${Math.min(saved.journey.index+1,STORY_COUNT)}/${STORY_COUNT}` : '旧篇存档' : '暂无存档';
 }
 function startNew() {
   if (saved) {
@@ -1088,12 +1127,15 @@ $('#native-skip').onclick=()=>storyPlayer?.skip();
 $('#dialogue-skip').onclick = skipDialogue;
 $('#start-game').onclick = startNew;
 $('#continue-game').onclick = () => launch(true);
+$('#title-settings').onclick = () => settingsPanel(closeSheet);
+$('#title-help').onclick = () => helpPanel(closeSheet);
+$('#title-about').onclick = () => aboutPanel(closeSheet);
 $('#sheet-close').onclick = closeSheet;
 $('#sheet-backdrop').onclick = event => { if (event.target === $('#sheet-backdrop')) closeSheet(); };
 $('#guide-button').onclick = $('#mobile-quest').onclick = $('#nav-guide').onclick = guide;
 $('#map-button').onclick = mapPanel;
-$('#settings-button').onclick = settingsPanel;
-$('#brand-home').onclick = event => { event.preventDefault(); settingsPanel(); };
+$('#settings-button').onclick = gameMenu;
+$('#brand-home').onclick = event => { event.preventDefault(); gameMenu(); };
 $('#sound-button').onclick = () => { settings.sound = !settings.sound; applySettings(); };
 $('#flight-button').onclick = () => {
   if(storyPlayer?.running)return;

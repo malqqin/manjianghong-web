@@ -12,13 +12,14 @@
   <link rel="stylesheet" href="hd.css">
   <link rel="stylesheet" href="native.css">
   <link rel="stylesheet" href="native-ui.css">
+  <link rel="stylesheet" href="shell.css">
 </head>
 <body>
   <div id="app">
     <header class="masthead">
       <a class="brand" href="#" id="brand-home" aria-label="打开游戏菜单"><span class="seal">江湖</span><span>满江红 <small>铁骑红颜</small></span></a>
       <div class="header-note">一枪山河 · 一念故人</div>
-      <div class="header-tools"><span id="save-state" role="status">山河待启</span><button class="icon-button" id="sound-button" aria-label="开启声音" title="声音">音<span>关</span></button><button class="icon-button" id="settings-button" aria-label="设置" title="设置">设</button></div>
+      <div class="header-tools"><span id="save-state" role="status">山河待启</span><a class="github-link" href="https://github.com/malqqin/manjianghong-web" target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开 GitHub 项目" title="GitHub 项目"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .8a11.2 11.2 0 0 0-3.54 21.82c.56.1.77-.24.77-.54v-2.09c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.68.08-.68 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.23 3.27.94.1-.73.39-1.23.71-1.51-2.5-.29-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.01-.12-.29-.5-1.43.11-2.97 0 0 .94-.3 3.08 1.15a10.7 10.7 0 0 1 5.6 0c2.13-1.45 3.07-1.15 3.07-1.15.61 1.54.23 2.68.11 2.97.72.78 1.16 1.78 1.16 3.01 0 4.33-2.64 5.28-5.15 5.56.4.35.76 1.03.76 2.08v3.09c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/></svg></a><button class="icon-button" id="sound-button" aria-label="开启声音" title="声音">音<span>关</span></button><button class="icon-button" id="settings-button" aria-label="打开游戏菜单" title="游戏菜单">菜单</button></div>
     </header>
     <main class="game-layout">
       <section class="stage" aria-label="游戏场景">
@@ -33,7 +34,7 @@
         <button id="native-skip">略过剧情</button>
         <button id="flight-button" class="flight-button hidden" aria-label="切换御剑飞行">御剑 ↑</button>
         <div id="location-bar"><span class="location-dot"></span><div><strong id="place-name">临安 · 听雨别院</strong><small id="chapter-name">一 · 风起药庐</small></div><button id="map-button" aria-label="打开行路图">行路图 <span>⌁</span></button></div>
-        <button id="mobile-quest" class="mobile-quest"><span>当前 · <b id="mobile-quest-title">风起药庐</b><small id="mobile-quest-text">与耿京交谈</small></span><span class="quest-guide">引路 ↗</span></button>
+        <button id="mobile-quest" class="mobile-quest" aria-label="引路至当前主线目标"><span class="quest-compass" aria-hidden="true">迹</span><span class="quest-copy"><span class="quest-kicker">主线 <b id="mobile-quest-title">风起药庐</b></span><small id="mobile-quest-text">与耿京交谈</small></span><span class="quest-guide">引路 ↗</span></button>
         <div id="scene-caption"><span class="caption-line"></span><span id="scene-mood">池荷初静，故人待归。</span><span class="caption-line"></span></div>
         <div id="map-tip"><span class="tap-icon"></span><span>点地面行走 · 点人物交谈</span></div>
         <div id="dialogue" class="dialogue hidden" role="dialog" aria-label="剧情对话" aria-labelledby="dialogue-name">
@@ -59,15 +60,31 @@
         </section>
       </section>
       <aside class="sidebar">
-        <div class="side-heading"><span>行 侠 录</span><small>THE WANDERING SWORD</small></div>
-        <section class="quest-card"><div class="eyebrow">当前篇章 <span id="quest-number">壹</span></div><h1 id="quest-title">风起药庐</h1><p id="quest-text">与耿京交谈，问明沐霏的伤势。</p><button id="guide-button" class="text-button">循迹引路 <span>↗</span></button></section>
+        <div class="side-heading"><span>行 侠 录</span><small>山河有迹 · 故人可寻</small></div>
+        <section class="quest-card"><div class="eyebrow"><span class="quest-seal" aria-hidden="true">主线</span>当前篇章 <span id="quest-number">壹</span></div><h1 id="quest-title">风起药庐</h1><p id="quest-text">与耿京交谈，问明沐霏的伤势。</p><button id="guide-button" class="text-button">循迹引路 <span>↗</span></button><small class="guide-note">循线而行，点地图可自由改道</small></section>
         <div class="side-divider"><span>同 行</span></div><div id="party-sidebar"></div>
         <div class="side-verse"><span>花叶永不相见，</span><span>缘注定生死。</span><i>原作六章 · 触屏重制</i></div>
         <div class="side-bottom"><span class="tiny-dot"></span><span>行至何处，便记于此</span></div>
       </aside>
     </main>
     <nav class="bottom-nav" aria-label="游戏菜单"><div class="hero-mini"><img src="assets/native/portrait-hero.png" alt="凌飞云"><div><strong>凌飞云 <small id="hero-level">一阶</small></strong><span class="hp-track"><i id="hero-hp"></i></span></div><span id="hero-hp-text">120 / 120</span></div><div class="nav-links"><button data-panel="party"><span class="nav-symbol">侠</span><span>同伴</span></button><button data-panel="bag"><span class="nav-symbol">囊</span><span>行囊</span></button><button data-panel="journal"><span class="nav-symbol">录</span><span>江湖记</span></button><button id="nav-guide"><span class="nav-symbol">迹</span><span>引路</span></button></div></nav>
-    <div id="title-screen" class="title-screen"><div class="title-art"></div><div class="title-content"><div class="title-eyebrow"><span></span>山河旧梦 · 原作六章<span></span></div><h1>满江红</h1><h2>铁 骑 红 颜</h2><p class="title-verse">山河入梦，故人入心。<br>这一程，不负江湖不负卿。</p><div class="title-illustration"><img src="assets/native/title.png" alt="原作洞中篝火场景"><span>花叶永不相见，缘注定生死。</span></div><button id="start-game" class="primary-button">踏入江湖 <span>→</span></button><button id="continue-game" class="continue-button hidden">续写前缘 <span id="continue-detail"></span></button><div class="title-footnote"><span>触屏行走</span><i>·</i><span>随行即存</span><i>·</i><span>原作六章</span></div><div id="loading-status" role="status">正在铺开山河…</div></div></div>
+    <div id="title-screen" class="title-screen">
+      <div class="cover-shell">
+        <figure class="cover-art"><img src="assets/fengmian.png" width="240" height="320" alt="满江红二·铁骑红颜，原版红金题字与盘龙封面"><figcaption>花叶永不相见 · 缘注定生死</figcaption></figure>
+        <section class="cover-menu" aria-label="主菜单">
+          <div class="cover-heading"><span>满江红二</span><h1>铁骑红颜</h1><small>原作六章 · 触屏重制</small></div>
+          <div class="native-menu-list cover-entries">
+            <button id="start-game">开始游戏</button>
+            <button id="continue-game" disabled>继续游戏<small id="continue-detail">暂无存档</small></button>
+            <button id="title-settings">游戏设置</button>
+            <button id="title-help">游戏帮助</button>
+            <button id="title-about">关于游戏</button>
+          </div>
+          <div class="cover-foot"><span>点地行走 · 随行即存</span><div id="loading-status" role="status">正在铺开山河…</div></div>
+        </section>
+      </div>
+      <div class="cover-colophon" aria-hidden="true"><span>山河旧梦</span><i></i><span>江湖重逢</span></div>
+    </div>
     <div id="sheet-backdrop" class="sheet-backdrop hidden"><section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="sheet-handle"></div><header><div><small id="sheet-subtitle">江湖随身笺</small><h2 id="sheet-title"></h2></div><button id="sheet-close" class="close-button" aria-label="关闭面板">×</button></header><div id="sheet-content"></div></section></div>
     <div id="toast" class="toast" role="status"></div>
     <div id="fatal" class="hidden" role="alert"></div>

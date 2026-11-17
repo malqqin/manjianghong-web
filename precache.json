@@ -2,6 +2,8 @@
   "./",
   "index.html",
   "style.css",
+  "shell.css",
+  "assets/fengmian.png",
   "hd.css",
   "game.js",
   "locomotion.js",
