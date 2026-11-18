@@ -1,4 +1,4 @@
-/* Restored original artwork: 4x super-resolution and stable pixel-art atlases. */
+/* Reference-driven AI artwork; rendering stays in original game coordinates. */
 @media(orientation:portrait) and (max-width:760px) and (max-height:800px){.battle-mode .battle-console{max-height:52%;overflow-y:auto;flex-shrink:0}#battle-scene{min-height:220px;flex-shrink:1}}
 .battle-actor .sprite-view{scale:var(--battle-facing,1) 1}
 .battle-actor .sprite-view{flex-shrink:0}

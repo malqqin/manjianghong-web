@@ -1,15 +1,16 @@
 import {compileStory,sampleTrack,layoutPoem,dialoguePages} from './story-presentation.js';
 import {animationFrame} from './presentation.js';
 import {drawNativeFrame} from './native-effects.js';
+import {viewportZoom} from './locomotion.js';
 const $=s=>document.querySelector(s);
 export class NativeStoryPlayer {
   constructor(data,images,loadMap,reducedMotion){Object.assign(this,{data,images,loadMap,reducedMotion,running:false,stage:null});this.serial=0;}
-  async run(lines,{offset=0,checkpoint=()=>{},complete=()=>{}}={}) {
+  async run(lines,{offset=0,checkpoint=()=>{},complete=()=>{},events=null}={}) {
     if(this.running)return;
     this.running=true;this.skipping=false;this.serial++;this.checkpoint=checkpoint;
     $('#app').classList.add('native-story','dialogue-open');
     try {
-      this.events=compileStory(lines,this.data,offset);
+      this.events=events||compileStory(lines,this.data,offset);
       for(const event of this.events) {
         if(this.skipping)break;
         if(event.scene) {
@@ -36,7 +37,6 @@ export class NativeStoryPlayer {
     const scene=this.data.scenes[event.scene];await this.loadMap(scene.map);
     if(this.skipping)return;
     this.stage={key:event.scene+':'+event.group,scene,tracks:scene.groups[event.group],tick:0};
-    $('#app').classList.add('cinema-bars');
     await this.pause(380,false);
   }
   pause(ms,advanceable=true) {
@@ -47,7 +47,7 @@ export class NativeStoryPlayer {
     });
   }
   advance(){if(this.typing){this.typing();return;}this.waiter?.();}
-  skip(){this.skipping=true;this.typing?.();this.cancelWait?.();this.waiter?.();}
+  cancel(){this.skipping=true;this.typing?.();this.cancelWait?.();this.waiter?.();}
   async travel(tick) {
     if(!this.stage)return;
     const from=this.stage.tick,start=performance.now(),duration=Math.max(0,(tick-from)*80);
@@ -133,7 +133,7 @@ export class NativeStoryPlayer {
       if(meta){
         const cut=event.action===16,duration=cut?1280:(meta.animations[pose]?.steps||[]).reduce((n,[,ticks])=>n+ticks*60,0);
         this.screenAction={cut,actor,meta,pose,start:performance.now(),duration,mirror:!!(actor.flags&1)};
-        await this.pause(duration,false);this.screenAction=null;
+        await this.pause(duration,false);this.screenAction=null;$('#native-screen').classList.add('hidden');
       }
       if(event.action===17&&!this.skipping&&!this.reducedMotion()){
         const layer=$('#native-flash');layer.style.background=event.parameter===1?'#f00':event.parameter===2?'#000':'#fff';
@@ -150,13 +150,16 @@ export class NativeStoryPlayer {
   }
   draw(ctx,view) {
     const stage=this.stage;if(!stage)return;
-    const {w,h,dpr}=view,zoom=Math.min(w/240,h/320),head=sampleTrack(stage.tracks[0],stage.tick);
+    const {w,h,dpr}=view,head=stage.tracks.length?sampleTrack(stage.tracks[0],stage.tick):stage.scene.actors.find(a=>a.sprite===0)||{x:120,y:160};
     const map=this.images.get('map-'+stage.scene.map+'.png');
     const axis=(target,extent,viewport)=>extent<viewport?(extent-viewport)/2:Math.max(0,Math.min(extent-viewport,target-viewport/2));
-    const camera={x:axis(head.x,map?.width||w/zoom,w/zoom),y:axis(head.y,map?.height||h/zoom,h/zoom)};
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
-    ctx.save();ctx.scale(zoom,zoom);ctx.translate(-Math.round(camera.x),-Math.round(camera.y));
-    if(map)ctx.drawImage(map,0,0);
+    const logicalMap=this.data.mapSizes?.[stage.scene.map];
+    const mapWidth=logicalMap?.[0]||map?.width||240,mapHeight=logicalMap?.[1]||map?.height||320;
+    const zoom=view.fullViewport?viewportZoom(w,h,mapWidth,mapHeight,true):Math.min(w/240,h/320);
+    const camera={x:axis(head.x,mapWidth,w/zoom),y:axis(head.y,mapHeight,h/zoom)};
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
+    ctx.save();ctx.scale(zoom,zoom);ctx.translate(-camera.x,-camera.y);
+    if(map)ctx.drawImage(map,0,0,mapWidth,mapHeight);
     const actors=stage.tracks.map(track=>({...sampleTrack(track,stage.tick),id:track[0]}));
     actors.sort((a,b)=>a.y-b.y);
     for(const actor of actors) {
@@ -166,7 +169,7 @@ export class NativeStoryPlayer {
       if(!image||!animation)continue;
       const frame=animationFrame(animation.steps,actor.elapsed,80);
       ctx.save();if(actor.flipY){ctx.translate(actor.x,actor.y);ctx.scale(1,-1);ctx.translate(-actor.x,-actor.y);}
-      drawNativeFrame(ctx,image,meta,frame,Math.round(actor.x),Math.round(actor.y),1,actor.mirror);ctx.restore();
+      drawNativeFrame(ctx,image,meta,frame,actor.x,actor.y,1,actor.mirror);ctx.restore();
     }
     ctx.restore();
     if(this.weather===1) {
@@ -182,7 +185,7 @@ export class NativeStoryPlayer {
       if(screenCanvas.width!==Math.ceil(w*dpr)||screenCanvas.height!==Math.ceil(h*dpr)){
         screenCanvas.width=Math.ceil(w*dpr);screenCanvas.height=Math.ceil(h*dpr);
       }
-      const ctx=screenCanvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,w,h);
+      const ctx=screenCanvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.clearRect(0,0,w,h);
       const {meta,actor,cut,start,mirror}=screen,image=this.images.get('original-'+meta.source),elapsed=performance.now()-start;
       const steps=meta.animations[screen.pose]?.steps||[],frame=animationFrame(steps,elapsed,60);
       const scale=Math.min(w/240,h/320),bounds=actor.bounds,centerX=bounds[0]+bounds[2]/2,centerY=bounds[1]+bounds[3]/2;

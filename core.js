@@ -1,5 +1,7 @@
 import { STORY_COUNT, equipmentStats, equipment } from './journey.js';
-import { combatCompanions, nativeSkill, skillSets } from './skills.js';
+import { combatCompanions, nativeSkill, skillSets, learnedSkills } from './skills.js';
+import { characterStats } from './progression.js';
+import { characterRules } from './character-rules.js';
 import { tacticalTurn } from './tactical.js';
 export const SAVE_KEY = 'mjh-touch-v1';
 export const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -50,11 +52,11 @@ export function newGame() {
   return { version: 1, stage: 0, map: 12, tile: { x: 17, y: 12 }, hp: 120, mp: 32, level: 1, xp: 0,
     coins: 60, potions: 3, bond: 0, party: false, flags: {}, journal: [], ending: null, playtime: 0, updated: Date.now() };
 }
-export const maxHP = state => 100 + state.level * 20;
-export const maxMP = state => 28 + state.level * 4;
+export const maxHP = state => state.journey?characterStats(state).maxHP:100 + state.level * 20 + equipmentStats(state).health;
+export const maxMP = state => state.journey?characterStats(state).maxMP:28 + state.level * 4 + equipmentStats(state).mana;
 export function validateSave(input) {
   if (!input || input.version !== 1 || !Number.isInteger(input.stage) || input.stage < 0 || input.stage > 7 ||
-    !(input.journey ? Number.isInteger(input.map) && input.map >= 0 && input.map < 42 && input.map !== 36 : [12, 0, 4, 19].includes(input.map)) || !Number.isInteger(input.level) || input.level < 1 || input.level > (input.journey ? 20 : 4) ||
+    !(input.journey ? Number.isInteger(input.map) && input.map >= 0 && input.map < 42 && input.map !== 36 : [12, 0, 4, 19].includes(input.map)) || !Number.isInteger(input.level) || input.level < 1 || input.level > (input.journey ? 60 : 4) ||
     !input.tile || !Number.isFinite(input.tile.x) || !Number.isFinite(input.tile.y) ||
     !Array.isArray(input.journal) || !input.flags || typeof input.flags !== 'object' || Array.isArray(input.flags)) return null;
   const state = { ...newGame(), ...input };
@@ -65,13 +67,35 @@ export function validateSave(input) {
       !j.equipped || typeof j.equipped !== 'object' || !Array.isArray(j.visited) || j.visited.some(id => !Number.isInteger(id) || id < 0 || id > 41) ||
       !Number.isInteger(j.skillRank) || j.skillRank < 1 || j.skillRank > 4 || !Number.isInteger(j.antidotes) || j.antidotes < 0 || j.antidotes > 99 ||
       !j.side || typeof j.side !== 'object' || Array.isArray(j.side)) return null;
-    for (const slot of ['weapon', 'ring', 'jade']) if (j.equipped[slot] && (!j.owned.includes(j.equipped[slot]) || equipment[j.equipped[slot]].slot !== slot)) return null;
+    const validSlots=(slots,actor)=>slots&&typeof slots==='object'&&!Array.isArray(slots)&&Object.entries(slots).every(([slot,id])=>['weapon','armor','bracer','ring','jade'].includes(slot)&&(!id||j.owned.includes(id)&&equipment[id]?.slot===slot&&(!equipment[id].actor||equipment[id].actor===actor)&&(!equipment[id].actors||equipment[id].actors.includes(actor))));
+    if(!validSlots(j.equipped,'hero'))return null;
+    if(j.companionEquipment!==undefined&&(!j.companionEquipment||typeof j.companionEquipment!=='object'||Array.isArray(j.companionEquipment)||Object.entries(j.companionEquipment).some(([actor,slots])=>!['fei','lan'].includes(actor)||!validSlots(slots,actor))))return null;
+    if(j.battleWave!==undefined&&(!Number.isInteger(j.battleWave)||j.battleWave<0||j.battleWave>2))return null;
     if (j.afterBattle !== undefined && (!Number.isInteger(j.afterBattle) || j.afterBattle !== j.index)) return null;
     if (j.partyVitals !== undefined && (!j.partyVitals || typeof j.partyVitals !== 'object' || Array.isArray(j.partyVitals) ||
       Object.entries(j.partyVitals).some(([id,v]) => !['fei','lan'].includes(id) || !v || !Number.isFinite(v.hp) || !Number.isFinite(v.mp) || v.hp < 0 || v.mp < 0))) return null;
     if (j.tactics !== undefined && (!j.tactics || typeof j.tactics !== 'object' || Array.isArray(j.tactics) || Object.entries(j.tactics).some(([id, skill]) => !['fei', 'lan'].includes(id) || skill !== 'attack' && !skillSets[id].some(s => s.id === skill && s.effect !== 'revive')))) return null;
     state.journey = { ...j, completed: j.index === STORY_COUNT, flying: false, members: [...new Set(j.members)], visited: [...new Set(j.visited)] };
+    if(j.index===11){state.journey.index=12;state.journey.line=0;}
+    for(const key of ['actorLevels','actorXP','items','learned','armCounts','clearedEncounters','nativeVars'])if(j[key]!==undefined&&(!j[key]||typeof j[key]!=='object'||Array.isArray(j[key])))return null;
+    if(Object.entries(j.actorLevels||{}).some(([id,l])=>!['fei','lan'].includes(id)||!Number.isInteger(l)||l<1||l>60))return null;
+    if(Object.values(j.items||{}).some(n=>!Number.isInteger(n)||n<0||n>99))return null;
+    if(Object.entries(j.armCounts||{}).some(([id,n])=>!equipment[id]||!Number.isInteger(n)||n<0||n>99))return null;
+    if(Object.values(j.actorXP||{}).some(n=>!Number.isFinite(n)||n<0))return null;
+    if(Object.values(j.clearedEncounters||{}).some(n=>!Number.isFinite(n)||n<0))return null;
+    if(j.fieldClock!==undefined&&(!Number.isFinite(j.fieldClock)||j.fieldClock<0))return null;
+    if(Object.values(j.nativeVars||{}).some(n=>!Number.isFinite(n)))return null;
+    if(j.nativeStageIndex!==undefined&&(!Number.isInteger(j.nativeStageIndex)||j.nativeStageIndex<0||j.nativeStageIndex>STORY_COUNT))return null;
+    if(Object.entries(j.learned||{}).some(([id,list])=>!['hero','fei','lan'].includes(id)||!Array.isArray(list)||list.some(n=>!Number.isInteger(n)||n<0||n>61)))return null;
     state.party = state.journey.members.length > 0;
+    if((j.rulesVersion||0)<2){
+      const target=state.journey;target.items={...(j.items||{})};
+      const add=(id,count)=>{target.items[id]=Math.min(99,(target.items[id]||0)+count);};
+      add(8,Math.max(0,Math.floor(state.potions)));for(const id of [2,3,4])add(id,j.antidotes||0);state.potions=0;target.antidotes=0;
+      target.actorLevels={fei:Math.max(5,state.level),lan:Math.max(10,state.level),...(j.actorLevels||{})};target.actorXP={fei:0,lan:0,...(j.actorXP||{})};
+      target.rulesVersion=2;
+      if(!j.rulesVersion)state.xp=Math.min(state.xp,Math.max(0,characterRules.experience[state.level]-1));
+    }
   }
   for (const field of ['hp', 'mp', 'coins', 'potions', 'bond', 'xp', 'playtime']) if (!Number.isFinite(state[field])) return null;
   state.hp = clamp(state.hp, state.journey ? 0 : 1, maxHP(state)); state.mp = clamp(state.mp, 0, maxMP(state));
@@ -92,9 +116,12 @@ export const encounters = {
 export function createBattle(id, state) {
   const encounter = encounters[id];
   const stats = equipmentStats(state);
-  const battle = { id, round: 1, hp: state.hp, mp: state.mp, maxHP: maxHP(state), maxMP: maxMP(state),
+  const battle = { id,native:!!encounter.native,round: 1, hp: state.hp, mp: state.mp, maxHP: maxHP(state), maxMP: maxMP(state),
     level: state.level, potions: state.potions, companion: state.party, focus: false, outcome: null,
-    attackBonus: stats.attack + ((state.journey?.skillRank || 1) - 1) * 4, defenseBonus: stats.defense,
+    attackBonus: stats.attack, defenseBonus: stats.defense,
+    stats:state.journey?characterStats(state):null,rage:state.journey?.rage||0,
+    itemCounts:structuredClone(state.journey?.items||{}),
+    learnedSkills:state.journey?Object.fromEntries(['hero',...state.journey.members].map(id=>[id,learnedSkills(state,id).filter(s=>!s.passive)])):null,
     spear: !!state.journey, activeActor: 'hero', spent: [],
     antidotes: state.journey?.antidotes || 0, statuses: { freeze: 0, burn: 0, confuse: 0 },
     companions: combatCompanions(state), companionName: state.journey?.members.includes('lan') ? '兰芷萱' : state.journey ? '耿沐霏' : '兰芷萱',
@@ -108,7 +135,7 @@ export function intent(enemy, round) {
   if ((round + enemy.id) % 4 === 0) return { text: '整备 · 本回合不攻击', multiplier: 0, heavy: false };
   return { text: '普通攻击', multiplier: 1, heavy: false };
 }
-export function battleTurn(current, action, target = 0, skillId = 'rainbow', actorId = current.activeActor, allyTarget = actorId) {
+export function battleTurn(current, action, target = 0, skillId = null, actorId = current.activeActor, allyTarget = actorId) {
   if (current.spear) return tacticalTurn(current, action, target, skillId, actorId, allyTarget);
   const b = structuredClone(current); b.events = [];
   if (b.outcome) return b;

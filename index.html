@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="native.css">
   <link rel="stylesheet" href="native-ui.css">
   <link rel="stylesheet" href="shell.css">
+  <link rel="stylesheet" href="polish.css">
 </head>
 <body>
   <div id="app">
@@ -31,14 +32,13 @@
         <div id="native-caption" class="hidden" role="status"></div>
         <div id="native-poem" class="hidden" role="button" tabindex="0" aria-label="剧情文字，轻点显示全文或继续"></div>
         <img id="native-cg" class="hidden" alt="原作剧情画面">
-        <button id="native-skip">略过剧情</button>
         <button id="flight-button" class="flight-button hidden" aria-label="切换御剑飞行">御剑 ↑</button>
         <div id="location-bar"><span class="location-dot"></span><div><strong id="place-name">临安 · 听雨别院</strong><small id="chapter-name">一 · 风起药庐</small></div><button id="map-button" aria-label="打开行路图">行路图 <span>⌁</span></button></div>
         <button id="mobile-quest" class="mobile-quest" aria-label="引路至当前主线目标"><span class="quest-compass" aria-hidden="true">迹</span><span class="quest-copy"><span class="quest-kicker">主线 <b id="mobile-quest-title">风起药庐</b></span><small id="mobile-quest-text">与耿京交谈</small></span><span class="quest-guide">引路 ↗</span></button>
         <div id="scene-caption"><span class="caption-line"></span><span id="scene-mood">池荷初静，故人待归。</span><span class="caption-line"></span></div>
         <div id="map-tip"><span class="tap-icon"></span><span>点地面行走 · 点人物交谈</span></div>
         <div id="dialogue" class="dialogue hidden" role="dialog" aria-label="剧情对话" aria-labelledby="dialogue-name">
-          <div class="dialogue-top"><span id="dialogue-context">江湖话叙</span><div class="dialogue-tools"><span id="dialogue-count" aria-label="对话进度"></span><button id="dialogue-skip">略过此段</button></div></div>
+          <div class="dialogue-top"><span id="dialogue-context">江湖话叙</span><div class="dialogue-tools"><span id="dialogue-count" aria-label="对话进度"></span></div></div>
           <div class="dialogue-body"><div class="dialogue-portrait-frame" id="dialogue-portrait-frame"><img id="dialogue-portrait" alt=""><span class="portrait-seal" aria-hidden="true">江湖</span></div><div class="dialogue-copy"><div class="dialogue-name-line"><strong id="dialogue-name"></strong><span id="dialogue-role"></span></div><p id="dialogue-text"></p></div></div>
           <div id="dialogue-choices"></div>
           <div class="dialogue-foot"><span class="dialogue-hint" aria-hidden="true">一字一句，皆是江湖</span><button id="dialogue-next">轻点继续 <span aria-hidden="true">◆</span></button></div>
@@ -67,7 +67,7 @@
         <div class="side-bottom"><span class="tiny-dot"></span><span>行至何处，便记于此</span></div>
       </aside>
     </main>
-    <nav class="bottom-nav" aria-label="游戏菜单"><div class="hero-mini"><img src="assets/native/portrait-hero.png" alt="凌飞云"><div><strong>凌飞云 <small id="hero-level">一阶</small></strong><span class="hp-track"><i id="hero-hp"></i></span></div><span id="hero-hp-text">120 / 120</span></div><div class="nav-links"><button data-panel="party"><span class="nav-symbol">侠</span><span>同伴</span></button><button data-panel="bag"><span class="nav-symbol">囊</span><span>行囊</span></button><button data-panel="journal"><span class="nav-symbol">录</span><span>江湖记</span></button><button id="nav-guide"><span class="nav-symbol">迹</span><span>引路</span></button></div></nav>
+    <nav class="bottom-nav" aria-label="游戏菜单"><div class="hero-mini"><img src="assets/lfytouxiang.png" alt="凌飞云"><div><strong>凌飞云 <small id="hero-level">一阶</small></strong><span class="hp-track"><i id="hero-hp"></i></span></div><span id="hero-hp-text">120 / 120</span></div><div class="nav-links"><button data-panel="party"><span class="nav-symbol">侠</span><span>同伴</span></button><button data-panel="bag"><span class="nav-symbol">囊</span><span>行囊</span></button><button data-panel="journal"><span class="nav-symbol">录</span><span>江湖记</span></button><button id="nav-guide"><span class="nav-symbol">迹</span><span>引路</span></button></div></nav>
     <div id="title-screen" class="title-screen">
       <div class="cover-shell">
         <figure class="cover-art"><img src="assets/fengmian.png" width="240" height="320" alt="满江红二·铁骑红颜，原版红金题字与盘龙封面"><figcaption>花叶永不相见 · 缘注定生死</figcaption></figure>

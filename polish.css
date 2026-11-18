@@ -1,0 +1,173 @@
+/* High-resolution presentation with the original paper, ink and vermilion palette. */
+/* One small control keeps the playable map clear on every viewport. */
+#app .stage #mobile-quest{display:flex;position:absolute;top:76px;left:auto;right:16px;width:auto;min-width:48px;min-height:44px;padding:8px 11px;gap:0;border:1px solid #c4a464;border-radius:5px;background:#34281eea;color:#f7e5b9;box-shadow:0 2px 8px #0004;backdrop-filter:none}
+#app #mobile-quest>span:first-child{display:none}#app #mobile-quest .quest-guide{font:16px/1.3 var(--native-font);color:#f7e5b9;letter-spacing:2px}#app.is-guiding #mobile-quest{border-color:#ffdf89;background:#6f4927ee}
+#app.dialogue-open #mobile-quest,#app.battle-mode #mobile-quest{display:none}
+#app #mobile-quest .quest-copy{display:none}
+#app #mobile-quest .quest-guide{border:0;padding:0}
+.character-tabs{display:flex;gap:8px;margin-bottom:15px}.character-tabs button{flex:1;padding:10px;border:1px solid #c6ab7c;background:#e4cda0;color:#6d512e;font:16px var(--native-font)}.character-tabs button[aria-selected=true]{background:#7d3529;color:#fff0c9;border-color:#642c25}
+.character-heading{display:flex;align-items:center;gap:15px;padding:8px 5px 16px}.character-heading img{width:70px;height:90px;object-fit:contain}.character-heading h3{font:25px var(--native-font);margin:0 0 8px}.character-heading p{margin:0;font-size:12px}
+.attribute-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:#c5aa77;border:1px solid #c5aa77}.attribute-grid>div{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f5e8cb;padding:10px 12px;font-size:13px}.attribute-grid b{font-variant-numeric:tabular-nums;color:#8a3d27}.character-gear{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.character-gear>div{border-bottom:1px solid #cbb485;padding:9px;font-size:13px}.character-gear small{color:#8a744e;margin-right:12px}.learned-skill{border-bottom:1px solid #d4bd90;padding:12px 3px}.learned-skill>div{display:flex;justify-content:space-between;gap:12px}.learned-skill strong{color:#793d2b}.learned-skill small{font-size:11px;color:#8e7346}.learned-skill p{margin:5px 0 0;font-size:12px}.learned-skill.locked{opacity:.55}.manual-row{display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid #d4bd90;padding:10px 0}.manual-row p{font-size:11px;margin:5px 0}.manual-row button{padding:8px;border:1px solid #a6884d;background:#dfc28b;color:#57371e}
+.sheet:before,.sheet:after,.native-party-frame:before,.native-party-frame:after,.dialogue:before,.dialogue:after{width:11px;height:11px;top:6px;left:6px;inset-inline-end:auto;background:none;border-top:2px solid #ad8847;border-left:2px solid #ad8847;box-shadow:none;z-index:0}
+.sheet:after,.native-party-frame:after,.dialogue:after{left:auto;right:6px;transform:scaleX(-1)}
+.sheet{padding:20px 20px 18px;font-family:var(--jianghu-font,var(--native-font));border-color:#54452f;box-shadow:inset 0 0 0 2px #fff7dd,inset 0 0 0 3px #b39458,0 14px 45px #0004}
+.sheet>header{padding:0 0 11px;gap:12px;border-color:#bba16c;isolation:isolate}
+.sheet>header small{display:block;line-height:1.6;padding-right:8px}
+.sheet .close-button{border:1px solid #bda679;border-radius:50%;background:#f4e1b9;outline-offset:3px}
+.sheet .close-button:before,.sheet .close-button:after{content:"";position:absolute;left:12px;top:20px;width:18px;height:2px;background:#6a392a;transform:rotate(45deg);image-rendering:auto}
+.sheet .close-button:before{transform:rotate(-45deg)}
+.sheet .close-button:hover{background:#edd49e}
+.dialogue,.dialogue.narration{padding-left:18px;padding-right:18px}
+.native-command-icon{width:44px;height:44px;background-image:url('assets/commands.svg');background-size:220px 44px;image-rendering:auto}
+.command-skill{background-position-x:-44px}.command-item{background-position-x:-88px}.command-guard{background-position-x:-132px}.command-shop{background-position-x:-176px}
+#app.battle-mode #battle-actions button,#app.battle-mode #battle-actions button:first-child{padding-top:3px;min-height:70px}
+#app.battle-mode #sheet-backdrop.battle-menu{background:#0d161338;align-items:flex-end;padding:18px}
+#app.battle-mode #sheet-backdrop.battle-menu .sheet{width:min(100%,660px);max-height:76%;padding:17px 20px;margin:0 auto;box-shadow:inset 0 0 0 2px #fff7dd,inset 0 0 0 3px #b39458,0 12px 40px #0005}
+.battle-menu .sheet>header>div{flex-direction:column;align-items:flex-start;gap:2px}
+.battle-menu .sheet h2{font-size:21px;letter-spacing:2px}
+.battle-menu .sheet>header small{font-size:12px;order:2}
+.native-choice-list{gap:8px;grid-template-columns:repeat(2,minmax(0,1fr));padding:3px 0}
+.native-choice{gap:9px;padding:10px 9px;min-height:68px;border:1px solid #ccb584;background:#fff7df80;position:relative}
+.native-choice>span{min-width:0;flex:1}.native-choice strong{font-size:16px;white-space:normal;line-height:1.4}
+.native-choice em{font:11px/1.5 var(--native-font);color:#796a50;display:block;margin-top:3px}
+.native-choice small{align-self:flex-start;font:11px/1.6 var(--native-font);color:#965534;white-space:nowrap}
+.native-choice[aria-pressed="true"]{border-color:#a0402c;background:linear-gradient(120deg,#f2d79d80,#fff5d6);box-shadow:inset 3px 0 #a0402c;outline:0;color:#8d2d23}
+.native-choice.unavailable{opacity:.56}
+.skill-seal{display:flex;align-items:center;justify-content:center;width:31px;height:36px;flex:none;border:1px solid #ba955e;color:#8d2d23;background:#e7cc96;font:21px var(--native-font);box-shadow:inset 0 0 0 2px #f9eacb;border-radius:50% 50% 3px 3px}
+.fx-ice,.fx-wave{color:#355e6d;background:#d7e3db;border-color:#759b9c}.fx-heal,.fx-aura{color:#526b36;background:#e1dfb2}.fx-petal{color:#924b61;background:#eed5ce}
+.sheet #native-choice-description{color:#79583d;min-height:34px;font-size:13px;padding-top:10px;margin-top:8px}
+.native-menu-foot{padding-top:8px}.native-confirm{min-width:110px;color:#fff5d9;background:#883b2c;border-color:#622a20;box-shadow:inset 0 0 0 1px #bd7960}
+.sheet .native-confirm:hover:enabled{background:#a34b34;color:#fff5d9}
+.sheet .item-row>img,.native-shop-item img,.treasure-art img,.native-battle-face{image-rendering:auto}
+.treasure-intro{text-align:center;color:#9a6833;font:14px/1.6 var(--native-font);letter-spacing:3px;margin:5px 0 18px}
+.treasure-card{display:flex;gap:14px;align-items:center;border:1px solid #c3a573;background:linear-gradient(110deg,#ead5a458,#fff6dd);padding:12px;margin:10px 0;animation:treasure-enter .5s ease-out}
+.treasure-card.rare{border-color:#b38938;background:radial-gradient(ellipse at 12% 50%,#e6ba4b44,transparent 70%),#fff1cf}
+.treasure-art{position:relative;display:grid;place-items:center;width:78px;height:78px;flex:none;background:radial-gradient(circle,#fff4bd,#e1c6854d 65%,transparent 67%)}
+.treasure-art:before{content:"";position:absolute;inset:8px;rotate:45deg;border:1px solid #ae842b6b}
+.treasure-art img{width:72px;height:72px;object-fit:contain;position:relative;filter:drop-shadow(0 3px 3px #7d4c2833)}
+.treasure-card small{font-size:11px;color:#967039}.sheet .treasure-card h3{font:20px/1.5 var(--native-font);color:#8c3929;margin:2px 0}.treasure-card h3 span{font-size:13px;color:#a28655}
+.sheet .treasure-card p{font-size:12px;line-height:1.6;margin:3px 0}.treasure-card b{font:12px var(--native-font);color:#72603c}
+.treasure-supplies{text-align:center;padding:14px;background:#e8d4a44d}
+.loot-heading{font:13px/1.6 var(--native-font);color:#896b3d;border-top:1px solid #c9b07a;padding-top:10px}
+.sheet .no-loot{font-size:12px;text-align:center;color:#998268;margin:2px 0 14px}
+.sheet .native-rewards{padding:4px 2px 12px}.sheet .native-rewards p{font-size:17px}
+.sheet .native-level-up{font-size:13px;padding:10px 0;color:#9f3d2b}
+.sheet #battle-reward,.sheet #treasure-confirm{width:100%;margin-top:12px}
+#app.battle-mode .battle-actor .sprite-view{transform:scale(var(--actor-scale,1.5));image-rendering:auto;filter:drop-shadow(0 4px 3px #19241b66)}
+#app.battle-mode .battle-actor{isolation:isolate}
+#app.battle-mode .battle-actor .actor-label{white-space:nowrap;top:69px;font-size:12px;max-width:100px;overflow:hidden;text-overflow:ellipsis}
+#app.battle-mode .battle-actor.ally .actor-label{right:auto;left:50%;translate:-50% 0;top:69px}
+#app.battle-mode .battle-actor .enemy-hp{top:86px;width:48px}
+#app.battle-mode .battle-actor .enemy-intent{display:none}
+#app.battle-mode .battle-actor.enemy.selected .enemy-intent{display:block;top:-55px;max-width:100px;white-space:nowrap;left:50%;translate:-50% 0}
+#app.battle-mode .battle-actor.enemy.selected:after{display:none}
+.native-battle-effect{mix-blend-mode:normal}
+@keyframes treasure-enter{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@media(max-width:520px){
+ .sheet{padding:20px 16px 16px}
+ #app.battle-mode #sheet-backdrop.battle-menu{padding:9px}
+ #app.battle-mode #sheet-backdrop.battle-menu .sheet{padding:15px 12px;max-height:78%}
+ .native-choice-list{gap:7px}.native-choice{flex-wrap:wrap;gap:6px;min-height:84px;padding:8px}.native-choice>span{flex-basis:calc(100% - 40px)}.native-choice small{margin-left:36px;line-height:1.2}.native-choice strong{font-size:15px}.native-choice em{display:none}
+ .treasure-art{width:60px;height:65px}.treasure-art img{width:58px;height:60px}.treasure-card{gap:10px;padding:10px}.sheet .treasure-card h3{font-size:18px}
+ #app.battle-mode .battle-actor .actor-label{font-size:11px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ .native-command-icon{width:32px;height:32px;background-size:160px 32px}.command-skill{background-position-x:-32px}.command-item{background-position-x:-64px}.command-guard{background-position-x:-96px}.command-shop{background-position-x:-128px}
+ #app.battle-mode #battle-actions button,#app.battle-mode #battle-actions button:first-child{min-height:50px;padding:0}
+ #app.battle-mode #sheet-backdrop.battle-menu{padding:8px;align-items:center}
+ #app.battle-mode #sheet-backdrop.battle-menu .sheet{width:min(86%,660px);max-height:96%;padding:10px 16px}
+ .battle-menu .sheet>header{margin-bottom:5px;padding-bottom:4px}.battle-menu .sheet>header>div{flex-direction:row;align-items:center;gap:15px}
+ .native-choice{min-height:52px;padding:6px 8px}.native-choice em{font-size:10px;margin:0}.skill-seal{height:31px;width:27px;font-size:18px}
+ .sheet #native-choice-description{min-height:25px;margin-top:5px;padding-top:5px}.native-menu-foot{padding-top:3px}
+ #app.battle-mode .battle-actor .actor-label{font-size:10px;top:66px}.sheet .treasure-card{padding:6px;margin:5px 0}
+}
+@media(prefers-reduced-motion:reduce){.treasure-card{animation:none}}
+
+/* Desktop uses the original bounded layout in style.css and native-ui.css. */
+/* Keep the full viewport on phones, short landscape screens and touch tablets. */
+html,body{overflow:hidden}
+@media(max-width:760px),(max-height:550px),(pointer:coarse){
+#app{width:100%;max-width:none;min-height:0;height:100dvh}
+#app .game-layout{display:flex;padding:0;flex:1;min-height:0}
+#app .stage,#app.battle-mode .stage{width:100%;max-width:none;margin:0;border:0;flex:1;height:100%}
+#app .sidebar{display:none}
+#app .title-screen{inset:0}
+#app.native-story .bottom-nav{display:none}
+#app.battle-mode .battle-top{padding-right:100px}
+}
+#app.battle-mode #battle-actions button small{display:block;font:10px/1.3 var(--native-font);margin-top:3px;letter-spacing:0;color:#806a44}
+@media(min-width:761px) and (min-height:551px) and (pointer:coarse){
+ #app .masthead{position:absolute;left:0;right:0;top:0;z-index:6;min-height:64px;height:64px;padding:0 100px 0 22px;background:linear-gradient(#132e2beb,transparent);border:0;color:#f7e8c5;pointer-events:none}
+ #app .masthead a,#app .masthead button{pointer-events:auto}
+ #app .brand{font-size:21px;color:#f7e8c5}.brand .seal{font-size:10px}.brand small{font-size:11px;color:#dbc69c}
+ #app .header-note,#app #save-state{display:none}
+ #app .header-tools{gap:7px}#app .header-tools button,#app .github-link{background:#18382dda;border:1px solid #cebb8855;border-radius:4px;color:#ffedc7}
+ #app #location-bar{top:78px;left:22px;right:auto;max-width:calc(100% - 150px)}
+ #app #location-bar:before{display:none}
+ #app #map-button{position:fixed;right:22px;top:78px;min-height:42px}
+ #app #flight-button{top:132px;right:22px}
+ #app .stage #mobile-quest{display:flex;left:22px;right:auto;top:144px;width:76px;min-height:38px}
+ #app .bottom-nav{position:absolute;left:18px;right:18px;bottom:max(14px,env(safe-area-inset-bottom));min-height:64px;padding:10px 14px;border:1px solid #c6b18366;border-radius:5px;background:#19392de8;color:#fff0cc;z-index:6;box-shadow:0 5px 20px #0003}
+ #app .hero-mini strong,#app .hero-mini small,#app #hero-hp-text{color:#fff0cc}#app .hero-mini>img{height:42px;width:42px;image-rendering:auto}
+ #app .nav-links{gap:26px}#app .nav-links button{min-height:42px;color:#fff0cc}#app .nav-symbol{color:#dfbc7f}
+ #app #map-tip{bottom:94px}#app #scene-caption{bottom:139px}
+ #app.dialogue-open .bottom-nav,#app.native-story .masthead,#app:has(#title-screen:not(.hidden)) .masthead,#app:has(#title-screen:not(.hidden)) .bottom-nav{display:none}
+ #app.battle-mode .battle-console{display:grid;grid-template-columns:minmax(360px,1fr) minmax(450px,1fr);align-items:stretch}
+ #app.battle-mode #battle-actions{align-items:center;padding-inline:18px}
+ #app.battle-mode #battle-actions button{min-height:105px}
+ #app.battle-mode .native-party-frame{padding:9px 12px}
+ #app.battle-mode #party-tactics button{display:grid;grid-template-columns:58px 1fr;column-gap:6px;flex:1;max-width:205px;padding:3px 5px}
+ #app.battle-mode .native-battle-face{grid-row:1/4;width:56px;height:35px;background-size:168px 35px}.native-battle-face.face-fei{background-position-x:-56px}.native-battle-face.face-lan{background-position-x:-112px}
+ #app.battle-mode #party-tactics strong{font-size:12px;margin:0}#app.battle-mode #party-tactics .native-vital{max-width:100%}
+ #app.battle-mode #battle-status{font-size:11px;padding-top:5px}
+}
+@media(max-width:760px),(max-height:550px){
+ #app .masthead{position:absolute;top:0;left:0;right:0;padding-right:86px;background:linear-gradient(#15352ded,transparent);border:0;z-index:6;color:#ffedc7}
+ #app .masthead .brand{color:#ffedc7}#app .brand small,#app .masthead .seal,#app .github-link,#app #sound-button{display:none}
+ #app #location-bar{top:76px}#app .stage #mobile-quest{top:126px}#app #flight-button{top:126px}
+ #app .bottom-nav{position:absolute;bottom:0;left:0;right:0;z-index:6;background:#ffefceeF;padding-bottom:env(safe-area-inset-bottom)}
+ #app #map-tip{bottom:82px}#app #scene-caption{display:none}
+ #app:has(#title-screen:not(.hidden)) .masthead,#app.native-story .masthead,#app.dialogue-open .bottom-nav{display:none}
+ #app.battle-mode #battle-actions button small{font-size:8px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #app .masthead{width:calc(100% - 100px);height:51px;min-height:51px;padding:0 12px}.masthead .brand{font-size:19px}
+ #app #location-bar{top:62px;left:14px;max-width:50%}#app #map-button{position:static;min-height:38px}#app #flight-button{top:65px;right:14px}
+ #app .stage #mobile-quest{top:112px;left:14px;right:auto}
+ #app .bottom-nav{height:54px;min-height:54px;padding-inline:14px}#app #map-tip{display:none}
+ #app.battle-mode #battle-actions button small{display:none}
+}
+
+/* Inventory slots: selection opens the adjacent item card. */
+.sheet-backdrop[data-kind="bag"] .sheet{width:min(100%,900px);max-height:calc(100dvh - 32px)}
+.bag-toolbar{display:flex;align-items:center;justify-content:space-between;padding:4px 0 14px;color:#87704b;font-size:13px}.bag-toolbar b{font-weight:400}.bag-toolbar strong{font:22px var(--native-font);color:#8b5730}.bag-toolbar strong small{font-size:13px}
+.bag-tabs{display:flex;gap:5px;margin-bottom:16px;border-bottom:1px solid #bda16e;padding-bottom:9px}.bag-tabs button{flex:1;max-width:100px;min-height:38px;background:transparent;border:1px solid transparent;color:#8d7550;font:14px var(--native-font)}.bag-tabs button[aria-pressed="true"]{background:#8d382b;color:#fff0d0;border-color:#6b271c;box-shadow:inset 0 0 0 2px #bd7850}
+.bag-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(230px,1fr);gap:22px;align-items:start}.bag-storage{min-width:0;max-height:52dvh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#b89860 transparent;padding:3px}
+.bag-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.bag-cell{position:relative;display:grid;place-items:center;aspect-ratio:1;min-width:0;padding:7px;border:1px solid #b59a69;border-radius:4px;background:radial-gradient(ellipse at 50% 32%,#fff2d0,#dfcba2);box-shadow:inset 0 0 0 2px #fff1d2,inset 0 -5px 14px #96754619;color:#603b25;isolation:isolate}
+.bag-cell img{width:100%;height:100%;max-height:76px;object-fit:contain;image-rendering:auto;filter:drop-shadow(0 3px 2px #60442b35)}.bag-cell.empty{background:#c6ad7d29;border-color:#c5af84;box-shadow:inset 0 2px 5px #6b4b2512}
+.bag-cell small{position:absolute;right:4px;bottom:2px;font:12px/1.4 var(--sans);color:#fff8dc;text-shadow:1px 1px #58381e,-1px -1px #58381e,1px -1px #58381e,-1px 1px #58381e}
+.bag-cell b{position:absolute;top:2px;left:3px;background:#546a45;color:#fff3d4;padding:1px 3px;border-radius:2px;font:10px/1.3 var(--native-font)}
+.bag-cell>span{position:absolute;top:100%;margin-top:3px;left:50%;translate:-50% 0;display:none;background:#392f24;color:#fff2d1;padding:4px 8px;font:11px var(--native-font);white-space:nowrap;border-radius:3px;z-index:3;pointer-events:none}
+.bag-cell:focus-visible>span{display:block}.bag-cell:hover{border-color:#855632}.bag-cell.rare{background:radial-gradient(ellipse,#fff0a5,#d4b365);border-color:#b78b30}
+.bag-cell[aria-pressed="true"]{outline:2px solid #a5452c;outline-offset:1px;background:radial-gradient(ellipse,#fff6d1,#e8b970);box-shadow:inset 0 0 0 2px #fff7de,0 0 9px #c9963b55}
+.bag-detail{min-height:280px;padding:15px;border:1px solid #c6af80;border-radius:4px;background:#fff9e54d;color:#6d5137;overflow-wrap:anywhere}
+.bag-detail-heading{display:flex;align-items:center;gap:12px}.bag-detail-art{width:68px;height:76px;flex:none;display:grid;place-items:center;background:radial-gradient(ellipse,#ead3a1,transparent 70%)}.bag-detail-art img{width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.bag-detail-heading small,.bag-detail-heading span{font:11px/1.5 var(--native-font);color:#92754b}.sheet .bag-detail-heading h3{font:20px/1.5 var(--native-font);color:#8e3827;margin:3px 0}
+.sheet .bag-description{font:14px/1.8 var(--native-font);margin:14px 0}.bag-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12px}.bag-stats div{display:flex;justify-content:space-between;gap:5px}.bag-stats dt{color:#9a8157}.bag-stats dd{margin:0;color:#6f562f}
+.sheet .bag-condition,.sheet .bag-wearer{font:12px/1.7 var(--native-font);margin:12px 0}.sheet .bag-wearer{color:#536740}.bag-detail-actions{margin-top:18px}.bag-detail-actions .native-confirm{width:100%;min-width:0;min-height:42px}
+.bag-empty-detail{display:flex;min-height:250px;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#9b8159}.bag-empty-detail>span{font:44px var(--native-font);color:#bd9d66}.sheet .bag-empty-detail p{font:14px var(--native-font);margin:17px 0 9px}.bag-empty-detail small{font:11px var(--native-font)}
+.bag-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:17px;padding-top:12px;border-top:1px solid #c4ac7d}.bag-footer small{font:11px/1.6 var(--native-font);color:#97815e}.bag-footer button{background:transparent;color:#903b2d;min-height:38px;font:12px var(--native-font);white-space:nowrap}.sheet .bag-no-items{font-size:12px;color:#9c815a;text-align:center}
+@media(max-width:600px){
+ .sheet-backdrop[data-kind="bag"]{padding:8px;align-items:center}.sheet-backdrop[data-kind="bag"] .sheet{max-height:calc(100dvh - 16px);padding:18px 13px 10px}
+ .bag-layout{grid-template-columns:1fr;gap:12px}.bag-grid{gap:6px}.bag-cell{padding:7px}.bag-storage{max-height:clamp(110px,25dvh,210px)}.bag-detail{min-height:0;padding:12px}.bag-empty-detail{min-height:100px}.bag-empty-detail>span{display:none}
+ .bag-detail-heading{gap:10px}.bag-detail-art{width:52px;height:57px}.sheet .bag-detail-heading h3{font-size:18px}.sheet .bag-description{margin:8px 0;font-size:13px}.bag-stats{margin:8px 0}.sheet .bag-condition,.sheet .bag-wearer{margin:6px 0}.bag-detail-actions{margin-top:9px}
+ .bag-toolbar{padding-bottom:8px}.bag-tabs{margin-bottom:9px}.bag-footer{margin-top:10px;padding-top:6px}.bag-footer small{font-size:10px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ .sheet-backdrop[data-kind="bag"] .sheet{width:min(96%,850px);padding:10px 15px;max-height:calc(100dvh - 12px)}
+ .bag-layout{grid-template-columns:minmax(0,1.4fr) minmax(220px,1fr);gap:14px}.bag-storage{max-height:44dvh}.bag-cell img{max-height:60px}.bag-detail{min-height:0;padding:10px}.bag-empty-detail{min-height:145px}.bag-toolbar{padding:0 0 6px}.bag-tabs{margin-bottom:6px;padding-bottom:5px}.bag-tabs button{min-height:30px}.bag-footer{margin-top:8px;padding-top:2px}.sheet-backdrop[data-kind="bag"] .sheet>header{margin-bottom:6px;padding-bottom:5px}.bag-detail-art{width:45px;height:50px}.sheet .bag-description{margin:7px 0;font-size:12px}.bag-detail-actions{margin-top:8px}
+}
+@media(max-width:600px) and (max-height:700px) and (orientation:portrait){
+ .bag-storage{max-height:20dvh}.bag-layout{gap:8px}.bag-detail{padding:10px}.bag-toolbar{padding-bottom:4px}.bag-tabs{padding-bottom:5px;margin-bottom:5px}
+}

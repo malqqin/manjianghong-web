@@ -13,7 +13,7 @@ test('Story text preserves original identities and source references; exploratio
   }
   assert.ok(story.steps[7].lines.some(l => l.speaker === '青年剑客' && l.who === 'li'));
   assert.ok(story.steps[13].lines.some(l => l.speaker === '少女' && l.who === 'lan'));
-  assert.ok(story.steps[11].lines.some(l => l.source.group === 2 && l.text.includes('芷萱')));
+  assert.ok(story.steps[61].afterLines.some(l => l.source?.scene==='s6'&&l.source.group === 2 && l.text.includes('芷萱')));
   assert.ok(story.steps[1].afterLines.some(l => l.text.includes('两个箱子')));
   for (const index of [14, 15, 57]) { assert.equal(story.steps[index].kind, 'travel'); assert.equal(story.steps[index].lines.length, 0); }
 });
@@ -62,14 +62,15 @@ test('Each person pays their own MP and controls enemy statuses and ally healing
   assert.equal(third.hp,initial.hp); assert.ok(!third.events.some(e=>typeof e.source==='number' && e.type==='damage'));
   const hurt=fullParty();hurt.hp=40;hurt.companions[0].hp=20;
   const heal=battleTurn(hurt,'skill',0,'spring','lan','fei');
-  assert.equal(heal.hp,40); assert.equal(heal.companions[0].hp,62);
-  assert.equal(heal.events[0].target,'fei'); assert.equal(heal.events[0].amount,42);
+  const recovered=Math.round(hurt.companions[0].maxHP*.3);
+  assert.equal(heal.hp,40); assert.equal(heal.companions[0].hp,20+recovered);
+  assert.equal(heal.events[0].target,'fei'); assert.equal(heal.events[0].amount,recovered);
 });
 
 test('A fallen hero does not end the party fight; revival targets a fallen party member', () => {
   const initial=fullParty();initial.hp=0;initial.companions[1].mp=initial.companions[1].maxMP=60;
   const revived=battleTurn(initial,'skill',0,'revive','lan','hero');
-  assert.equal(revived.hp,42); assert.equal(revived.events[0].target,'hero'); assert.equal(revived.outcome,null);
+  assert.equal(revived.hp,Math.round(initial.maxHP*.3)); assert.equal(revived.events[0].target,'hero'); assert.equal(revived.outcome,null);
   const skip=fullParty();skip.companions[0].hp=0;skip.hp=0;
   const last=battleTurn(skip,'guard',0,'rainbow','lan');
   assert.equal(last.round,2,'dead party members do not block the enemy phase');

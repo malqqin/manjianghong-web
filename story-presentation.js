@@ -69,7 +69,7 @@ export function compileStory(lines,data,offset=0) {
   const result=[];
   for(const block of groups) {
     const scene=data.scenes[block.scene],tracks=scene?.groups[block.group];
-    if(!tracks){for(const {line,index} of block.lines)if(index>=offset)result.push({kind:'dialogue',line,index,checkpoint:index+1});continue;}
+    if(!tracks){for(const {line,index} of block.lines)if(index>=offset)result.push({kind:line.action===15?'effect':line.action===14?'caption':'dialogue',action:line.action,line,text:line.text,parameter:line.parameter,index,checkpoint:index+1});continue;}
     const boundary=groupTransitions(scene,block.group);
     if(offset<=block.lines[0].index)for(const effect of boundary.before)result.push({...effect,scene:block.scene,group:block.group,tick:0,kind:'effect',checkpoint:block.lines[0].index,program:true});
     const rows=tracks.flatMap((track,order)=>trackKeys(track).map(key=>({...key,track:track[0],order}))).sort((a,b)=>a.tick-b.tick||a.order-b.order);
@@ -94,6 +94,14 @@ export function compileStory(lines,data,offset=0) {
     }
   }
   return result;
+}
+export function compileGroup(data,sceneKey,group){
+ const scene=data.scenes[sceneKey],tracks=scene?.groups[group];if(!tracks)return [];
+ const rows=tracks.flatMap((track,order)=>trackKeys(track).map(key=>({...key,track:track[0],order}))).sort((a,b)=>a.tick-b.tick||a.order-b.order);
+ const events=rows.filter(row=>[13,14].includes(row.action)||VISUAL_ACTIONS.has(row.action)).map(row=>({scene:sceneKey,group,tick:row.tick,track:row.track,parameter:row.parameter,checkpoint:0,
+  kind:row.action===13?'dialogue':row.action===14?'caption':'effect',action:row.action,text:scene.strings[row.string],line:{text:scene.strings[row.string]},portraitActor:row.parameter}));
+ events.push({scene:sceneKey,group,tick:Math.max(0,...trackKeys(tracks[0]).map(k=>k.tick)),kind:'tail',checkpoint:0});
+ return events;
 }
 export function layoutPoem(text,vertical=true,columns=7,rows=7) {
   const pages=[[]];let x=vertical?columns-1:0,y=0,color='#111111';

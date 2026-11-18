@@ -1,5 +1,11 @@
 import { facingDirection } from './presentation.js';
 
+// Desktop keeps its original scale; mobile retains its full-viewport camera.
+export function viewportZoom(width,height,mapWidth,mapHeight,fullViewport=false){
+  const base=width<760?2:3;
+  return fullViewport?Math.max(base,width/mapWidth,height/mapHeight):base;
+}
+
 export function createTrail(points) {
   const trail = { points: [], distance: 0 };
   for (const point of points) recordTrail(trail, point);

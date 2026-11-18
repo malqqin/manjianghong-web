@@ -1,13 +1,26 @@
-import { SAVE_KEY, clamp, component, nearestTile, findPath, newGame, validateSave, maxHP, maxMP, encounters, createBattle, battleTurn, intent } from './core.js';
+import { SAVE_KEY, clamp, walkable, component, nearestTile, findPath, newGame, validateSave, maxHP, maxMP, encounters, createBattle, battleTurn, intent } from './core.js';
+import {advanceFieldActor} from './field-motion.js';
 import { chapters, places, characters, entities as rawEntities, objectives, visibleEntity } from './world.js';
 import { facingDirection, rasterActorFrame, animationFrame, battleAnimations, battleEventState, battleFacingScale, battlePosition, battleSequence } from './presentation.js';
-import { createFieldEncounters, touchingEncounter, isFieldMap } from './encounters.js';
+import { touchingEncounter } from './encounters.js';
 import { skillSets, nativeSkill, partyNames } from './skills.js';
+import { learnedSkills } from './skills.js';
+import { characterStats, actorLevel, learnedIndices, gainExperience, experienceRequired, learnManual } from './progression.js';
+import { characterRules } from './character-rules.js';
+import { originalRules } from './original-rules.js';
+import { addItem, applyItem, itemRecord } from './items.js';
+import { equipmentAvailable, removeEquipment } from './inventory.js';
+import { openBag, openNativeShop } from './bag.js';
+import { originalItemDrops } from './journey.js';
 import { partyActors, availableActors } from './tactical.js';
-import { NativeBattleEffects, nativeDuration } from './native-effects.js';
+import { NativeBattleEffects, nativeDuration, drawNativeFrame } from './native-effects.js';
+import { scenePortals, routeExit, evaluateCondition, sceneEncounters, encounterAvailable } from './exploration.js';
+import { storyStage, scenePrograms, executeNative, sceneActorLayout, mainCheckpoint } from './native-events.js';
+import { trackKeys, compileGroup } from './story-presentation.js';
 import { NativeStoryPlayer } from './story-player.js';
-import { createTrail, recordTrail, trailPoint, followTrail, walkPath, cameraPosition, sceneLoader } from './locomotion.js';
-import { STORY_COUNT, chapterNames, equipment, originalState, journeyObjective, advanceJourney, equipmentStats, equipItem, purchase, flightPath, journeyEncounter } from './journey.js';
+import { spriteRegion } from './raster.js';
+import { createTrail, recordTrail, trailPoint, followTrail, walkPath, cameraPosition, sceneLoader, viewportZoom } from './locomotion.js';
+import { STORY_COUNT, chapterNames, equipment, originalState, journeyObjective, advanceJourney, flightPath, journeyEncounter, canFly, itemArt, grantEquipment, battleRewards } from './journey.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -19,7 +32,9 @@ let sprites, battleSprites, entities, state = newGame(), saved = null, started =
 let originalStory, storyBattleDone = null;
 let nativeCombat, combatEffects, storyPlayer;
 const hd = name => `assets/native/${name}.png`;
-const portraitNames = { hero: 'hero', lan: 'lan', fei: 'fei', geng: 'geng', boss: 'boss', li: 'li', lin: 'lin', general: 'general' };
+// Keep the editable source portraits for the hero, Mu Fei and Geng Jing.
+// Story dialogue also reads these files directly from the original scene data.
+const portraitNames = { lan: 'lan', boss: 'boss', li: 'li', lin: 'lin', general: 'general' };
 for (const [id, c] of Object.entries(characters)) if (portraitNames[id]) c.portrait = `native/portrait-${portraitNames[id]}.png`;
 Object.assign(characters, {
   li: { name: '完颜羽诚', portrait: 'native/portrait-li.png', role: '流浪剑客' },
@@ -31,39 +46,34 @@ characters.lan.name = '兰芷萱';
 function objective() { return state.journey ? journeyObjective(state, originalStory.steps) : objectives[state.stage]; }
 function currentChapter() { return state.journey ? `${['一','二','三','四','五','六'][objective().chapter - 1]} · ${chapterNames[objective().chapter - 1]}` : chapters[state.stage]; }
 function members() { return state.journey ? state.journey.members : state.party ? ['lan'] : []; }
-const storyEntities = new Map();
 let mainGoalCache = null;
-function buildStoryEntities() {
-  storyEntities.clear();
-  for (const id of originalStory.steps.map(s => s.map)) {
-    if (storyEntities.has(id)) continue;
-    const ground = tiles.get(id), spawn = nearestTile(ground, ...places[id].spawn);
-    const locate = (x, y) => nearestTile(ground, x, y);
-    const list = [
-      { id: `story-chest-${id}`, map: id, ...locate(spawn.x + 4, spawn.y - 4), kind: 'chest', sprite: 39, name: '行路藏箱' }
-    ];
-    if ([2,12,13,14,22,23,24,25,27,30,34].includes(id)) {
-      list.push({ id: `shop-${id}`, map: id, ...locate(spawn.x - 4, spawn.y - 3), kind: 'shop', sprite: 13, name: '钱多多 · 药铺' });
-      list.push({ id: `smith-${id}`, map: id, ...locate(spawn.x + 4, spawn.y + 2), kind: 'smith', sprite: 7, name: '票多多 · 装备' });
-    }
-    if (isFieldMap(id)) list.push({ id: `golden-${id}`, map: id, ...locate(spawn.x - 6, spawn.y - 6), kind: 'golden', contact: true, sprite: 17, windVariant: 2, name: '金色妖物 · 首饰' });
-    if (id === 12) {
-      list.push({ id: 'books-quest', map: id, ...locate(spawn.x + 7, spawn.y - 7), kind: 'side', sprite: 13, name: '老者 · 寻回字画' });
-      list.push({ id: 'ghost-quest', map: id, ...locate(spawn.x - 7, spawn.y - 7), kind: 'side', sprite: 13, name: '老张头 · 地窖怪事' });
-    }
-    const occupied = [...list, ...originalStory.steps.filter(s => s.map === id).map(s => locate(s.x, s.y))];
-    list.push(...createFieldEncounters(id, ground, spawn, occupied));
-    storyEntities.set(id, list);
-  }
+let portalGraph={},nativeEntityCache=null,nativeScriptRunning=false;const stageCache=new Map();
+function currentSceneKey(){return objective().map===state.map?objective().scene:state.journey?.scene&&storyPlayer.data.scenes[state.journey.scene]?.map===state.map?state.journey.scene:Object.keys(storyPlayer.data.scenes).find(key=>storyPlayer.data.scenes[key].map===state.map);}
+function nativeVariables(){const j=state.journey,index=j.index;if(!stageCache.has(index))stageCache.set(index,index===63?52:storyStage(storyPlayer.data,originalStory.steps,index));const stage=j.nativeStageIndex===index?j.nativeVars?.[0]??stageCache.get(index):stageCache.get(index);return {...(j.nativeVars||{}),0:stage};}
+function checkpointTarget(){const checkpoint=mainCheckpoint(state.journey?.index,nativeVariables()[0]);return checkpoint&&checkpoint.scene===currentSceneKey()?`native-npc-${checkpoint.scene}-${checkpoint.actorIndex}`:null;}
+function mapExits(){return (portalGraph[currentSceneKey()]||[]).filter(e=>evaluateCondition(e.condition,nativeVariables(),{0:5,1:e.markerSprite,2:e.actorIndex,15:1})).map(e=>{if(!e.snapped){Object.assign(e,nearestTile(tiles.get(state.map),e.x,e.y),{map:state.map,snapped:true});}return e;});}
+function nativeExploreEntities(){
+ const key=currentSceneKey(),vars=nativeVariables(),cacheKey=key+':'+state.journey.index+':'+JSON.stringify(vars);
+ if(nativeEntityCache?.key===cacheKey)return nativeEntityCache.entities;
+ if(!storyPlayer.data.scenes[key])return [];
+ const scene=storyPlayer.data.scenes[key],actors=sceneActorLayout(storyPlayer.data,key,vars,state.journey.nativeActors?.[key]),list=[...mapExits(),...sceneEncounters(storyPlayer.data,key,actors).map(e=>({...e,...nearestTile(tiles.get(state.map),e.x,e.y)}))];
+ for(const [index,a]of actors.entries()){
+  if(!(a.flags&4))continue;
+  const p=nearestTile(tiles.get(state.map),(a.x-8)/16,(a.y-8)/16),common={...p,map:state.map,sprite:a.sprite,nativeActor:a,actorIndex:index,scene:key};
+  if([39,40].includes(a.sprite)){list.push({...common,id:`native-chest-${key}-${index}`,kind:'chest',name:a.extra[2]?'上锁藏箱':'藏箱',scripted:scenePrograms(storyPlayer.data,key,index,vars,originalStory.steps).length>0,locked:!!a.extra[2],nativeItem:a.extra[0]===0?null:a.extra[1],loot:a.extra[0]===0?'arm-'+a.extra[1]:null});continue;}
+  if(![5,6,7,12,13,14,15,16,20,22,44,45,46].includes(a.sprite))continue;
+  const programs=scenePrograms(storyPlayer.data,key,index,vars,originalStory.steps);if(!programs.length)continue;
+  const text=programs.flatMap(p=>p.items).find(i=>[13,14].includes(i.action)),name=text?(scene.strings[text.args[3]]||'').replace(/#[a-f\d]{6}/gi,'').match(/^([^：:“”]{1,8})[：:]/)?.[1]:null;
+  const contact=a.sprite===22&&programs.some(p=>p.events.includes(4)),rect=contact?{x:a.x+a.bounds[0],y:a.y+a.bounds[1],width:a.bounds[2],height:a.bounds[3]}:null;
+  const point=rect?nearestTile(tiles.get(state.map),(rect.x+rect.width/2-8)/16,(rect.y+rect.height/2-8)/16):p;
+  list.push({...common,...point,id:`native-npc-${key}-${index}`,kind:'native-npc',contact,contactRect:rect,discovery:[20,22].includes(a.sprite),sprite:a.sprite===22?undefined:a.sprite,name:name||([20,22].includes(a.sprite)?'探查':[44,45,46].includes(a.sprite)?'机关':'江湖人')});
+ }
+ nativeEntityCache={key:cacheKey,entities:list};return list;
 }
 function originalEntities() {
-  if (state.map === 12 && state.journey.side.booksTaken && !storyEntities.get(12).some(e => e.id === 'book-0')) {
-    const ground = tiles.get(12);
-    for (let i = 0; i < 4; i++) storyEntities.get(12).push({ ...ground[Math.floor((i+1)*ground.length/5)], id: `book-${i}`, map: 12, kind: 'bookchest', sprite: 40, name: `字画箱 · ${i+1}` });
-  }
-  const list = (storyEntities.get(state.map) || []).filter(e => !state.journey.side[e.id]);
+  const list = nativeExploreEntities().filter(e=>e.kind!=='encounter'||encounterAvailable(e,state.journey.clearedEncounters,state.journey.fieldClock||0));
   const q = objective();
-  if (q.target && q.map === state.map) {
+  if (q.target && q.map === state.map&&!checkpointTarget()) {
     if (mainGoalCache?.index !== state.journey.index) {
       const p = nearestTile(tiles.get(state.map), q.x, q.y);
       const speaker = q.lines.find(line => !['hero','story'].includes(line.who))?.who;
@@ -82,9 +92,13 @@ let combatSequence = 0;
 let encounterGraceUntil = 0, suppressedEncounter = null, battlePhase = '';
 let dialogue = null, activeSheet = null, battle = null, battleBusy = false, selectedEnemy = 0;
 let previousTime = performance.now(), animTime = 0, saveTimer, toastTimer, lastSave = 0, guideActive = false;
-let sheetReturnFocus;
+let sheetReturnFocus, sheetDismiss = null;
 let settings = { sound: false, fast: false, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches };
-try { settings = { ...settings, ...JSON.parse(localStorage.getItem('mjh-settings') || '{}') }; saved = validateSave(JSON.parse(localStorage.getItem(SAVE_KEY) || 'null')); } catch {}
+try {
+ settings={...settings,...JSON.parse(localStorage.getItem('mjh-settings')||'{}')};
+ const raw=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');saved=validateSave(raw);
+ if(saved&&raw.journey&&(raw.journey.rulesVersion||0)<2&&!localStorage.getItem('mjh-before-original-rules-v2'))localStorage.setItem('mjh-before-original-rules-v2',JSON.stringify(raw));
+} catch {}
 
 function toast(message) {
   $('#toast').textContent = message; $('#toast').classList.add('show'); clearTimeout(toastTimer);
@@ -138,9 +152,17 @@ const music = {
 };
 function resize() {
   const rect = canvas.getBoundingClientRect();
-  view = { w: rect.width, h: rect.height, zoom: rect.width < 760 ? 2 : 3, dpr: Math.min(devicePixelRatio || 1, 2) };
+  const map=maps.get(state.map),base=rect.width<760?2:3;
+  const fullViewport=matchMedia('(max-width:760px), (max-height:550px), (pointer:coarse)').matches;
+  view = { w: rect.width, h: rect.height, zoom: map?viewportZoom(rect.width,rect.height,map.width*16,map.height*16,fullViewport):base, fullViewport, dpr: Math.min(devicePixelRatio || 1, 2) };
   canvas.width = Math.round(rect.width * view.dpr); canvas.height = Math.round(rect.height * view.dpr);
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  resizeBattle();
+}
+function resizeBattle(){
+  if(!battle)return;
+  const board=$('#battle-scene').getBoundingClientRect();
+  $('#battle-scene').style.setProperty('--actor-scale',String(Math.max(.85,Math.min(2.15,Math.min(board.width/210,board.height/250)))));
 }
 function currentEntities() { return state.journey ? originalEntities() : entities.filter(e => e.map === state.map && visibleEntity(e, state)); }
 function actorFrame(id, direction = 'down', moving = false, elapsed = animTime) { return [39,40,43].includes(id) ? 0 : rasterActorFrame(direction, moving, elapsed); }
@@ -163,12 +185,13 @@ function resetFollowers() {
 function stopFollowers() { followers.forEach(f=>f.moving=false); }
 function drawSprite(id, frame, x, y) {
   const image = images.get(`sprite-${id}.png`);
-  if (image) ctx.drawImage(image, frame * 64, 0, 64, 64, Math.round(x)-32, Math.round(y)-50, 64, 64);
+  if (image) ctx.drawImage(image, ...spriteRegion(image, frame), x-32, y-50, 64, 64);
 }
 function objectiveHere() {
   const objective = state.journey ? journeyObjective(state, originalStory.steps) : objectives[state.stage];
+  if(state.journey&&checkpointTarget())return checkpointTarget();
   if (objective.map === undefined || objective.map === state.map) return objective.target;
-  if (state.journey) return null;
+  if (state.journey) return routeExit(portalGraph,currentSceneKey(),objective.scene)?.id||null;
   const route = {
     12: { 0: 'maple-gate', 4: 'maple-gate', 19: 'camp-gate' },
     0: { 4: 'cave-gate', 12: 'home-gate', 19: 'home-gate' },
@@ -179,7 +202,7 @@ function objectiveHere() {
 }
 function drawWorld() {
   if (!loaded) return;
-  if(storyPlayer?.running && storyPlayer.stage){storyPlayer.draw(ctx,view);return;}
+  if(storyPlayer?.stage&&(storyPlayer.running||nativeScriptRunning)){storyPlayer.draw(ctx,view);return;}
   const { w, h, zoom, dpr } = view, map = maps.get(state.map);
   const vw = w / zoom, vh = h / zoom;
   const desired = performance.now() < panUntil && !path.length ? pan : cameraPosition(player,map,view);
@@ -190,14 +213,19 @@ function drawWorld() {
   const background = images.get(`map-${state.map}.png`);
   if (background) ctx.drawImage(background, 0, 0, map.width * 16, map.height * 16);
   if (destination) {
-    ctx.strokeStyle = '#fcf3cabb'; ctx.lineWidth = 1 / zoom; ctx.beginPath();
-    ctx.ellipse(destination.x * 16 + 8, destination.y * 16 + 8, 5 + Math.sin(animTime / 150), 2.5, 0, 0, Math.PI * 2); ctx.stroke();
+    drawGroundMark(destination.x*16+8,destination.y*16+8,true);
   }
-  ctx.fillStyle = '#fff1baab';
-  path.forEach((p, i) => { if (i % 2 === 0) { ctx.beginPath(); ctx.arc(p.x * 16 + 8, p.y * 16 + 8, 1.4 / zoom, 0, Math.PI * 2); ctx.fill(); } });
+  path.forEach((p, i) => {ctx.save();ctx.fillStyle=i%3===Math.floor(animTime/180)%3?'#fffbed':'#ffde73';ctx.shadowColor='#ffcd4b';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(p.x*16+8,p.y*16+8,2.8/zoom,0,Math.PI*2);ctx.fill();ctx.restore();});
   const visible = currentEntities();
+  for(const e of visible.filter(e=>e.discovery||e.id==='main-goal'))drawGroundMark(e.x*16+8,e.y*16+8,e.id===objectiveHere());
   for (const e of visible.filter(e => e.kind === 'portal')) {
     const x = e.x * 16 + 8, y = e.y * 16 + 8;
+    if(state.journey){
+      drawGroundMark(x,y,e.id===objectiveHere());
+      const meta=storyPlayer.data.sprites[e.markerSprite],image=images.get('original-'+meta?.source);
+      if(meta&&image&&e.markerSprite===20){const steps=meta.animations[e.markerAnimation]?.steps||meta.animations[0].steps;drawNativeFrame(ctx,image,meta,animationFrame(steps,animTime,80),x,y-8,1.25);}
+      continue;
+    }
     ctx.fillStyle = '#f9ef9c44'; ctx.beginPath(); ctx.ellipse(x, y, 8, 4, 0, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#fff2a3aa'; ctx.lineWidth = 1 / zoom; ctx.stroke();
     ctx.fillStyle = '#fff3b9'; ctx.font = '12px serif'; ctx.textAlign = 'center'; ctx.fillText('⌃', x, y + Math.sin(animTime / 250) - 2);
@@ -214,8 +242,10 @@ function drawWorld() {
     if (flying) {
       const direction={up:0,down:1,left:2,right:3}[actor.follower?.direction || player.direction];
       const flightFrame=direction*2+(settings.reducedMotion?0:Math.floor(animTime/640)%2);
-      ctx.drawImage(images.get('flight-'+actor.sprite+'.png'),flightFrame*64,0,64,64,Math.round(actor.px)-32,Math.round(actor.py)-50,64,64);
-    } else drawSprite(actor.sprite, frame, actor.px, actor.py);
+      const texture=images.get('flight-'+actor.sprite+'.png');
+      if(texture)ctx.drawImage(texture,...spriteRegion(texture,flightFrame),actor.px-32,actor.py-50,64,64);
+    } else if(actor.nativeActor){const meta=storyPlayer.data.sprites[actor.sprite],image=images.get('original-'+meta.source),animation=actor.kind==='chest'?(state.flags[actor.id]?0:1):actor.nativeActor.animation,steps=meta.animations[animation]?.steps||meta.animations[0].steps;if(image)drawNativeFrame(ctx,image,meta,animationFrame(steps,animTime,80),actor.px,actor.py,1);}
+    else drawSprite(actor.sprite, frame, actor.px, actor.py);
   }
   for (const e of visible.filter(e => e.kind === 'herb')) ctx.drawImage(images.get('flower.png'), e.x * 16 - 4, e.y * 16 - 17, 24, 28);
   // Labels use screen pixels so they stay readable at any map zoom.
@@ -241,11 +271,25 @@ function drawWorld() {
   const gradient = ctx.createLinearGradient(0, h - 90, 0, h); gradient.addColorStop(0, '#153a2700'); gradient.addColorStop(1, '#153a2755');
   ctx.fillStyle = gradient; ctx.fillRect(0, h - 90, w, 90);
 }
+function drawGroundMark(x,y,active=false){
+  ctx.save();const pulse=settings.reducedMotion?0:Math.sin(animTime/260),r=active?13:10;
+  ctx.translate(x,y);ctx.shadowColor=active?'#ffcf48':'#7ce4f5';ctx.shadowBlur=active?12:7;ctx.strokeStyle=active?'#fff1a8':'#9af5fb';ctx.lineWidth=1.4/view.zoom;
+  for(let i=0;i<2;i++){ctx.globalAlpha=i?.45:1;ctx.beginPath();ctx.ellipse(0,0,r+i*3+pulse,4+i*2,0,0,Math.PI*2);ctx.stroke();}
+  ctx.globalAlpha=.9;ctx.fillStyle=active?'#fff6bc':'#ceffff';ctx.beginPath();ctx.arc(0,-2,2/view.zoom,0,Math.PI*2);ctx.fill();ctx.restore();
+}
 function step(dt) {
   if(storyPlayer?.running)return;
+  if(nativeScriptRunning)return;
   if (!started || dialogue || battle || activeSheet || scenePending || document.hidden) return;
   if(followerKey!==members().join(',')) resetFollowers();
   state.playtime += dt;
+  if(state.journey){
+    const j=state.journey;
+    // Migrate old wall-clock cooldowns once, preserving which enemies were cleared.
+    if(j.fieldClock===undefined){j.fieldClock=0;for(const id of Object.keys(j.clearedEncounters||{}))j.clearedEncounters[id]=0;}
+    j.fieldClock+=dt*1000;
+  }
+  if(state.journey)for(const e of currentEntities())if(e.kind==='encounter')advanceFieldActor(e,player,dt,(x,y)=>walkable(maps.get(state.map),Math.floor(x/16),Math.floor(y/16)),{flying:state.journey.flying});
   if (checkEncounterContact()) return;
   const walkingSpeed = state.journey?.flying ? 125 : settings.fast ? 94 : 64;
   const spacing=state.journey?.flying?28:16;
@@ -262,8 +306,11 @@ function step(dt) {
 function checkEncounterContact() {
   if (!state.journey || performance.now() < encounterGraceUntil) return false;
   const nearby = currentEntities();
+  const exit=nearby.find(e=>e.kind==='portal'&&Math.hypot(player.x-(e.x*16+8),player.y-(e.y*16+8))<10);
+  if(exit){path=[];destination=null;pendingInteraction=null;interactOriginal(exit);return true;}
   const suppressed = nearby.find(e => e.id === suppressedEncounter);
-  if (!suppressed || Math.hypot(player.x - (suppressed.x * 16 + 8), player.y - (suppressed.y * 16 + 8)) > 36) suppressedEncounter = null;
+  const rect=suppressed?.contactRect,distance=rect?Math.hypot(player.x-clamp(player.x,rect.x,rect.x+rect.width),player.y-clamp(player.y,rect.y,rect.y+rect.height)):suppressed?Math.hypot(player.x-(suppressed.x*16+8),player.y-(suppressed.y*16+8)):Infinity;
+  if(distance>36)suppressedEncounter=null;
   const enemy = touchingEncounter(player, nearby, { flying: state.journey.flying, suppressed: suppressedEncounter });
   if (!enemy) return false;
   suppressedEncounter = enemy.id; path = []; destination = null; pendingInteraction = null; stopFollowers();
@@ -278,7 +325,7 @@ function frame(now) {
 }
 function moveTo(tile, entity = null) {
   panUntil = 0;
-  const start = nearestTile(tiles.get(state.map), Math.round((player.x - 8) / 16), Math.round((player.y - 8) / 16));
+  const start = path.length ? { ...path[0] } : nearestTile(tiles.get(state.map), Math.round((player.x - 8) / 16), Math.round((player.y - 8) / 16));
   let end = nearestTile(tiles.get(state.map), tile.x, tile.y);
   if (entity && entity.kind !== 'portal') {
     const adjacent = tiles.get(state.map).filter(p => Math.abs(p.x - entity.x) + Math.abs(p.y - entity.y) === 1);
@@ -292,6 +339,7 @@ function moveTo(tile, entity = null) {
 }
 function sceneClick(event) {
   if(storyPlayer?.running)return;
+  if(nativeScriptRunning)return;
   if (!started || activeSheet || battle || dialogue || scenePending) return;
   const rect = canvas.getBoundingClientRect(), x = event.clientX - rect.left, y = event.clientY - rect.top;
   const candidates = currentEntities().map(e => {
@@ -308,6 +356,7 @@ const commitScene=sceneLoader(ensureMap,(mapId,spawn)=>{
   panUntil = 0;
   encounterGraceUntil = performance.now() + 1500;
   state.map = mapId;
+  resize();
   if (state.journey && !state.journey.visited.includes(mapId)) state.journey.visited.push(mapId);
   const source = spawn || places[mapId].spawn, tile = nearestTile(tiles.get(mapId), source[0], source[1]);
   state.tile = { ...tile }; player.x = tile.x * 16 + 8; player.y = tile.y * 16 + 8;
@@ -335,7 +384,7 @@ function renderHUD() {
   $('#quest-text').textContent = $('#mobile-quest-text').textContent = q.text;
   $('#quest-number').textContent = state.journey ? `${Math.min(state.journey.index + 1, STORY_COUNT)} / ${STORY_COUNT}` : ['壹', '壹', '贰', '贰', '叁', '肆', '终', '终'][state.stage];
   guidePresentationKey = ''; syncGuideUI();
-  $('#flight-button').classList.toggle('hidden', !state.journey);
+  $('#flight-button').classList.toggle('hidden', !canFly(state));
   $('#flight-button').textContent = state.journey?.flying ? '落地 ↓' : '御剑 ↑';
   $('#map-tip span:last-child').textContent = state.journey ? '点地面行走 · 接触旋风遇敌' : '点地面行走 · 点人物交谈';
   $('#hero-level').textContent = `${state.level} 阶`;
@@ -353,18 +402,20 @@ function syncGuideUI() {
   if (key === guidePresentationKey) return;
   guidePresentationKey = key;
   $('#app').classList.toggle('is-guiding', guiding);
-  $('#guide-button').innerHTML = `${ending ? '重温终章' : legacy ? '进入原作主线' : guiding ? '正在循迹' : '循迹引路'} <span aria-hidden="true">↗</span>`;
-  $('.quest-guide').textContent = ending ? '终章 ↗' : legacy ? '主线 ↗' : guiding ? '前往中' : '引路 ↗';
+  $('#guide-button').innerHTML = `${ending ? '重温终章' : legacy ? '进入原作主线' : guiding ? '正在循迹' : '引路'} <span aria-hidden="true">↗</span>`;
+  $('.quest-guide').textContent = ending ? '终章' : legacy ? '主线' : guiding ? '止步' : '引路';
+  $('#mobile-quest').setAttribute('aria-label',guiding?'停止引路':`引路：${objective().title}`);
   $('.guide-note').textContent = guiding ? '正在循线前往 · 点地图可改道' : '循线而行，点地图可自由改道';
 }
 function guide() {
   if(storyPlayer?.running)return;
+  if(nativeScriptRunning)return;
   if (!started || dialogue || battle || scenePending) return;
   if (state.journey) {
     closeSheet(); if (state.journey.completed) return originalEnding();
     guideActive = true; const q = objective();
-    if (q.map !== state.map) return transition(q.map);
-    const target = currentEntities().find(e => e.id === 'main-goal');
+    if (q.map !== state.map){const graph={...portalGraph,[currentSceneKey()]:mapExits()},exit=routeExit(graph,currentSceneKey(),q.scene);if(exit){const target=currentEntities().find(e=>e.id===exit.id);if(target){toast(`循路前往 · ${target.name}`);return moveTo(target,target);}}return transition(q.map);}
+    const target = currentEntities().find(e => e.id === (checkpointTarget()||'main-goal'));
     if (!target) { guideActive = false; return toast('线索正在展开，请稍候再试。'); }
     toast(`循迹前往 · ${q.title}`); return moveTo(target, target);
   }
@@ -386,7 +437,7 @@ function say(lines, onEnd = () => {}) {
 }
 function playStory(lines,onEnd=()=>{},offset=0,base=null) {
   path=[];pendingInteraction=null;destination=null;guideActive=false;stopFollowers();
-  const enriched=lines.map(line=>({...line,portrait:characters[line.who]?.portrait}));
+  const enriched=lines.map(line=>({...line,portrait:line.portrait||characters[line.who]?.portrait}));
   return storyPlayer.run(enriched,{offset,checkpoint:value=>{
     if(base!==null){state.journey.line=base+value;saveGame(true);}
   },complete:()=>{renderHUD();drawWorld();onEnd();}}).catch(error=>{
@@ -406,7 +457,6 @@ function renderDialogue() {
   $('.dialogue-body').scrollTop=0;
   $('#dialogue-choices').replaceChildren();
   $('#dialogue-next').classList.toggle('hidden', !!line.choices);
-  $('#dialogue-skip').classList.toggle('hidden', !!line.choices);
   if (line.choices) for (const choice of line.choices) {
     const button = document.createElement('button'); button.textContent = choice.text;
     button.onclick = () => { choice.effect?.(); advanceDialogue(); }; $('#dialogue-choices').append(button);
@@ -420,14 +470,6 @@ function advanceDialogue() {
   if (dialogue.index < dialogue.lines.length) renderDialogue();
   else { const end = dialogue.onEnd; dialogue = null; $('#dialogue').classList.add('hidden'); $('#app').classList.remove('dialogue-open'); renderHUD(); saveGame(); end(); }
 }
-function skipDialogue() {
-  if(storyPlayer?.running){storyPlayer.skip();return;}
-  if (!dialogue || dialogue.lines[dialogue.index].choices) return;
-  const choiceIndex = dialogue.lines.findIndex((line, i) => i > dialogue.index && line.choices);
-  if (choiceIndex >= 0) { dialogue.index = choiceIndex; renderDialogue(); }
-  else { dialogue.index = dialogue.lines.length - 1; advanceDialogue(); }
-}
-
 function beginOriginalJourney() {
   const old = structuredClone(state);
   if (started && !old.journey) localStorage.setItem('mjh-legacy-backup-v1', JSON.stringify(old));
@@ -445,10 +487,13 @@ function legacyBridge() {
 }
 function completeOriginalStep() {
   const title = objective().title;
+  const previousItems=new Set(state.journey.owned), flightWasKnown=canFly(state);
   if (!advanceJourney(state, originalStory.steps)) return;
   remember(`【${currentChapter()}】${title} · 已完成`);
   guideActive = false; mainGoalCache = null; renderHUD(); saveGame(true);
   if (state.journey.completed) return originalEnding();
+  const gifts=state.journey.owned.filter(id=>!previousItems.has(id)).map(id=>({id,count:1,fresh:true}));
+  if(gifts.length) return showTreasure(gifts,!flightWasKnown&&canFly(state)?'御剑之术已习得':'故人相赠',title);
   toast(`下一程 · ${objective().title}`);
 }
 function playOriginalStep() {
@@ -463,76 +508,110 @@ function playOriginalStep() {
   const next = () => {
     if (state.journey.index !== index) return;
     if (q.kind === 'battle') {
-      const id = `original-${index}`; encounters[id] = journeyEncounter(q, state);
-      storyBattleDone = () => { state.journey.afterBattle = index; state.journey.line = q.lines.length; saveGame(true); after(); };
-      beginBattle(id, q.battleParty);
-    } else completeOriginalStep();
+      const wave=state.journey.battleWave||0,id = `original-${index}-${wave}`; encounters[id] = journeyEncounter(q, state, q.enemy, wave);
+      storyBattleDone = () => {
+        if(wave+1<(q.battleTeams?.length||1)) {
+          state.journey.battleWave=wave+1;saveGame(true);
+          if(q.betweenBattles&&wave===0)return say(q.betweenBattles,next);
+          return next();
+        }
+        delete state.journey.battleWave;state.journey.afterBattle = index; state.journey.line = q.lines.length; saveGame(true); after();
+      };
+      beginBattle(id, wave===0?q.battleParty:null);
+    } else after();
   };
   const offset = Math.min(state.journey.line, q.lines.length);
   if (offset >= q.lines.length) return next();
   playStory(q.lines,next,offset,0);
 }
 function interactOriginal(e) {
+  if(e.kind==='native-npc'||e.scripted)return runNativeInteraction(e);
+  if(e.kind==='portal'){
+    const q=objective(),next=originalStory.steps[state.journey.index+1];
+    if(q.kind==='travel'&&q.map===state.map&&next&&routeExit(portalGraph,currentSceneKey(),next.scene)?.id===e.id){advanceJourney(state,originalStory.steps);mainGoalCache=null;}
+    state.journey.scene=e.toScene;
+    return transition(e.to,e.spawn);
+  }
   guideActive = false;
   if (e.contact && e.id !== 'main-goal' && state.journey.flying) return toast('御剑时不会触发敌人。点「落地」后可交锋。');
   if (e.contact) suppressedEncounter = e.id;
   if (e.id === 'main-goal') return playOriginalStep();
   if (e.kind === 'encounter') {
     const id = `field-${e.id}`;
-    const fight = journeyEncounter({ title: `${e.name} · 山道遭遇`, map: state.map }, state, e.enemy);
-    fight.reward = 35 + state.level * 8; fight.xp = 25 + state.level * 5;
-    fight.enemies = fight.enemies.map(enemy => ({ ...enemy, hp: Math.round(enemy.hp * .8), attack: Math.max(5, enemy.attack - 2) }));
+    const team=e.teams[Math.floor(Math.random()*e.teams.length)];
+    const fight = journeyEncounter({ title: `${e.name} · 山道遭遇`, map: state.map,scene:e.scene,battleTeams:[team] }, state);
     encounters[id] = fight;
-    storyBattleDone = () => { state.journey.side[e.id] = true; remember(`击散${e.name}，山路恢复平静。`); saveGame(true); toast('敌群已散 · 主线进度保留'); };
+    state.journey.clearedEncounters||={};state.journey.clearedEncounters[e.id]=state.journey.fieldClock||0;
+    storyBattleDone = () => { remember(`击散${e.name}，山路恢复平静。`); saveGame(true); toast(e.respawn?'敌群已散 · 稍后会重新出现':'敌群已散'); };
     suppressedEncounter = e.id;
     return beginBattle(id);
   }
-  if (e.kind === 'shop' || e.kind === 'smith') return originalBag(e.kind === 'smith' ? '装备行' : '行囊与药铺');
   if (e.kind === 'chest') {
     if (state.flags[e.id]) return toast('箱中已空，物品已收入行囊。');
-    state.flags[e.id] = true; state.potions = Math.min(99, state.potions + 2); state.coins += 45;
-    remember('打开行路藏箱，获得金疮药 ×2、银两 ×45。'); renderHUD(); saveGame(); return toast('金疮药 ×2 · 银两 +45');
+    if(e.locked&&!state.journey.lockpick)return promptNative('尚未学会妙手空空，是否学习？',['学习妙手空空','暂且离开']).then(answer=>{if(answer===0){state.journey.lockpick=true;remember('领悟妙手空空，可开启上锁藏箱。');saveGame();interactOriginal(e);}});
+    if(e.nativeItem!=null){state.flags[e.id]=true;addItem(state,e.nativeItem);const item=itemRecord(e.nativeItem);saveGame(true);return say([{text:`打开藏箱，获得${item.name}。${item.description}`}]);}
+    if(e.loot){state.flags[e.id]=true;const fresh=grantEquipment(state,e.loot);remember(`打开藏箱，获得${equipment[e.loot].name}。`);saveGame(true);return showTreasure([{id:e.loot,count:1,fresh}],equipment[e.loot].rarity==='神兵'?'神兵入手':'藏箱得宝',places[state.map].name);}
+    return toast('箱中已空。');
   }
-  if (e.kind === 'golden') {
-    const id = 'optional-golden'; encounters[id] = journeyEncounter({ title: '金色妖物 · 首饰试炼', map: state.map }, state, 'golden');
-    storyBattleDone = () => {
-      state.journey.side[e.id] = true;
-      const item = state.journey.owned.includes('linglong') ? 'frostjade' : 'linglong';
-      if (!state.journey.owned.includes(item)) state.journey.owned.push(item);
-      remember(`击退金色妖物，取得${equipment[item].name}。`); saveGame(true); toast(`获得${equipment[item].name} · 在行囊佩戴`);
-    };
-    return beginBattle(id);
-  }
-  if (e.id === 'books-quest') {
-    const side = state.journey.side;
-    if (side.booksTaken) {
-      const taken = [0,1,2,3].filter(i => state.flags[`book-${i}`]).length;
-      if (taken < 4) return toast(`字画寻回 ${taken}/4 · 箱子标在汴京行路图上`);
-      side[e.id] = true; state.coins += 200; state.journey.skillRank = Math.max(2, state.journey.skillRank);
-      renderHUD(); saveGame(); return say([{ text: '老者：那四口箱子里的字画总算都回来了！多谢少侠。' }, { text: '获得银两 ×200，长虹枪法提升至二重。' }]);
-    }
-    return say([{ text: '老者：老朽一生只爱收集古书字画。前几日来了地痞，将它们全部占为己有。四口箱子就在城内，能否请少侠帮忙寻回？' }, { who: 'hero', text: '这个忙我帮定了。老人家，等我回来。' }], () => {
-      side.booksTaken = true;
-      const ground = tiles.get(12);
-      for (let i = 0; i < 4; i++) {
-        const p = ground[Math.floor((i + 1) * ground.length / 5)];
-        storyEntities.get(12).push({ ...p, id: `book-${i}`, map: 12, kind: 'bookchest', sprite: 40, name: `字画箱 · ${i + 1}` });
-      }
-      remember('汴京支线：为老者寻回四口箱子里的字画。'); saveGame(); toast('支线开启 · 寻回字画');
-    });
-  }
-  if (e.kind === 'bookchest') {
-    if (state.flags[e.id]) return toast('这口箱子的字画已收好。');
-    state.flags[e.id] = true; saveGame(); return toast('字画已收好 · 集齐四份后交给老者');
-  }
-  if (e.id === 'ghost-quest') return say([{ text: '老张头：小女小蕊将自己关在地窖，似乎中了邪。诸位若能救她，老夫感激不尽。' }, { text: '魁召：就凭你们？尔等的魂魄也将是我魁召之佳肴！' }], () => {
-    const id = 'optional-ghost'; encounters[id] = journeyEncounter({ title: '支线 · 小蕊与魁召', map: 41 }, state, 'ghost');
-    storyBattleDone = () => {
-      state.journey.side[e.id] = true; state.coins += 180; state.journey.antidotes = Math.min(99, state.journey.antidotes + 3);
-      remember('汴京支线完成：驱除魁召，小蕊得救。'); saveGame(true);
-      say([{ text: '老张头：小蕊！你终于清醒了……几位少侠，这份恩情我们父女记在心里。' }]);
-    }; beginBattle(id);
+}
+function promptNative(title,options,cancelValue=options.length-1){
+  return new Promise(resolve=>{
+    openSheet(title,`<div class="native-menu-list">${options.map((text,i)=>`<button data-native-answer="${i}">${escapeHTML(text)}</button>`).join('')}</div>`,'江湖抉择');
+    sheetDismiss=()=>resolve(cancelValue);
+    $$('[data-native-answer]').forEach(b=>b.onclick=()=>{sheetDismiss=null;closeSheet();resolve(Number(b.dataset.nativeAnswer));});
   });
+}
+function nativeShop(kind,shopIndex) {
+ return openNativeShop(state,{openSheet,closeSheet,saveGame,onDismiss:callback=>{sheetDismiss=callback;}},kind,shopIndex);
+}
+async function runNativeInteraction(entity){
+ if(nativeScriptRunning)return;nativeScriptRunning=true;guideActive=false;path=[];pendingInteraction=null;destination=null;stopFollowers();
+  const key=entity.scene,scene=storyPlayer.data.scenes[key],variables=nativeVariables(),startingIndex=state.journey.index;
+ const actorOverrides=()=>{state.journey.nativeActors||={};return state.journey.nativeActors[key]||={};};
+ const updateActor=(index,value)=>{actorOverrides()[index]={...actorOverrides()[index],...value};nativeEntityCache=null;};
+ const dialogueAt=(index,action=13,parameter=0)=>new Promise(resolve=>{
+  const text=scene.strings[index]||'',actor=scene.actors[parameter],meta=storyPlayer.data.sprites[actor?.sprite],portrait=meta?.source.includes('touxiang')?meta.source:undefined;
+  say([{text,action,parameter,portrait}],resolve);
+ });
+ const originalFight=team=>new Promise(resolve=>{const id='native-'+key+'-'+team;encounters[id]=journeyEncounter({title:entity.name,map:state.map,battleTeams:[team]},state);storyBattleDone=(won=true)=>resolve(won);beginBattle(id);});
+ const handlers={
+   dialogue:dialogueAt,
+   group:async group=>{
+    await storyPlayer.run([],{events:compileGroup(storyPlayer.data,key,group)});
+    for(const track of scene.groups[group]||[]){const end=trackKeys(track).at(-1);if(!end)continue;const actor=scene.actors[track[0]];updateActor(track[0],{x:end.x,y:end.y,animation:end.animation&255,flags:end.animation&0x4000?actor.flags&~4:actor.flags|12});}
+   },
+   actor:async(action,index,animation,x,y)=>{
+    const actor=scene.actors[index];if(action===49){for(const [index,a]of scene.actors.entries())if(a.flags&0x100)updateActor(index,{flags:a.flags&~4});return;}
+    if(!actor)return;if(action===7||action===9)updateActor(index,{x,y,animation,flags:actor.flags|12});if(action===8)updateActor(index,{animation,flags:actor.flags|12});if(action===10)updateActor(index,{flags:actor.flags&~4});
+   },
+   effect:async(action,parameter,extra)=>{const previous=storyPlayer.stage;if(!previous)storyPlayer.stage={key:key+':script',scene,tracks:[],tick:0};try{await storyPlayer.effect({action,parameter:action===17?extra:parameter,track:action===16||action===17?parameter:null});}finally{storyPlayer.stage=previous;}},
+   gameOver:async index=>{await dialogueAt(index);state.hp=maxHP(state);state.mp=maxMP(state);state.journey.partyVitals={};},
+   travel:async(index,x,y)=>{const target=storyPlayer.data.scenes[Object.keys(storyPlayer.data.scenes)[index]];if(target?.map!==36){state.journey.scene=Object.keys(storyPlayer.data.scenes)[index];await transition(target.map,x>=0&&y>=0?[(x-8)/16,(y-8)/16]:undefined);}},
+   choice:indices=>promptNative(entity.name,indices.map(i=>scene.strings[i]||'继续')),
+   confirm:async index=>(await promptNative(scene.strings[index]||'是否继续？',['是','否']))===0,
+   inventory:(type,index)=>type===0?equipmentAvailable(state,'arm-'+index):state.journey.items?.[index]||0,
+   grant:async(type,index,count)=>{if(type===0){const id='arm-'+index,fresh=grantEquipment(state,id,{count});if(!equipment[id])return;await new Promise(resolve=>{showTreasure([{id,count,fresh}],'获得宝物',entity.name);sheetDismiss=resolve;$('#treasure-confirm').onclick=()=>closeSheet();});}else{addItem(state,index,count);await new Promise(resolve=>say([{text:`获得${itemRecord(index).name} ×${count}`}],resolve));}},
+   remove:(type,index)=>{if(type===0)removeEquipment(state,'arm-'+index);else if(state.journey.items?.[index]>0)state.journey.items[index]--;},
+   experience:(index,amount)=>{const actors=index===-1?['hero',...members()]:[['hero','fei','lan'][index]].filter(Boolean);gainExperience(state,amount,actors);},
+   teach:(index,skill)=>{const id=['hero',...members()][index];if(!id)return 0;const old=learnedIndices(state,id).find(n=>Math.floor(n/4)===Math.floor(skill/4));if(old>=skill)return 0;state.journey.learned||={};state.journey.learned[id]||=[];state.journey.learned[id].push(skill);return 1;},
+   battle:originalFight,
+   journal:index=>remember((scene.strings[index]||'').replace(/#[a-f\d]{6}/gi,'')),
+   rest:()=>{state.hp=maxHP(state);state.mp=maxMP(state);state.journey.partyVitals={};},
+   party:(index,add)=>{const id=['hero','fei','lan'][index];if(!id||id==='hero')return;state.journey.members=add?[...new Set([...members(),id])]:members().filter(a=>a!==id);},
+   learn:async skill=>{if(state.journey[skill])return true;const yes=(await promptNative(skill==='lockpick'?'尚未学会妙手空空，是否学习？':'尚未学会高级御剑飞行，是否学习？',['学习','暂不学习']))===0;if(yes)state.journey[skill]=true;return yes;},
+   money:amount=>{if(state.coins+amount<0)return false;state.coins+=amount;return true;},
+   shop:nativeShop,
+   document:async index=>dialogueAt(index),
+   cg:async(index,text)=>{await new Promise(resolve=>{openSheet('江湖奇珍',`<img class="ending-art" src="assets/${scene.strings[index].replace(/^\//,'')}" alt="江湖奇珍"><p>${escapeHTML(scene.strings[text]||'')}</p><button class="primary-button" id="native-cg-confirm">继续</button>`);sheetDismiss=resolve;$('#native-cg-confirm').onclick=()=>closeSheet();});},
+   challenge:async(cost,team)=>{const yes=await promptNative(`花费${cost}银挑战训练师，全体获得${cost*2}点经验，是否挑战？`,['挑战','离开']);if(yes!==0)return false;if(state.coins<cost){toast('银两不足。');return false;}state.coins-=cost;gainExperience(state,cost*2);await originalFight(team);return true;}
+ };
+ try{
+  state.journey.nativeVars=variables;
+  const programs=scenePrograms(storyPlayer.data,key,entity.actorIndex,variables,originalStory.steps);
+  if(programs.length)await executeNative(programs[0].items,{variables,system:{0:5,1:entity.nativeActor.sprite,2:entity.actorIndex,15:1},handlers});
+  state.journey.nativeVars={...variables};state.journey.nativeStageIndex=startingIndex;renderHUD();saveGame(true);
+ }catch(error){console.error(error);toast('这段事件未能完成，请重新交谈。');}
+ finally{nativeScriptRunning=false;nativeEntityCache=null;}
 }
 function originalEnding() {
   guideActive = false;
@@ -540,26 +619,28 @@ function originalEnding() {
   $('#ending-revisit').onclick = closeSheet;
   $('#ending-record').onclick = () => showOriginalJournal();
 }
-function originalBag(title = '行囊与药铺') {
-  const j = state.journey, stats = equipmentStats(state);
-  const row = (id, owned) => {
-    const item = equipment[id], on = j.equipped[item.slot] === id;
-    return `<div class="item-row"><img src="${hd('item-' + item.icon)}" alt="${item.name}"><div><strong>${item.name}</strong><p>${item.description}</p></div><button ${on ? 'disabled' : ''} ${owned ? `data-equip="${id}"` : `data-buy="${id}"`}>${on ? '已佩戴' : owned ? '佩戴' : `${item.price} 两`}</button></div>`;
-  };
-  openSheet(title, `<div class="wallet"><strong>${state.coins} 两</strong><span>攻击 +${stats.attack} · 减伤 ${stats.defense}</span></div><div class="item-row"><img src="${hd('item-potion')}" alt="金疮药"><div><strong>金疮药 ×${state.potions}</strong><p>恢复 65 生命</p></div><button id="original-heal" ${!state.potions || state.hp >= maxHP(state) ? 'disabled' : ''}>服用</button></div><div class="item-row"><img src="${hd('item-antidote')}" alt="清平丸"><div><strong>清平丸 ×${j.antidotes}</strong><p>战斗中解除冰冻、灼烧、混乱。</p></div></div><h3>已收集装备</h3>${j.owned.map(id => row(id, true)).join('')}<h3>票多多 · 装备行</h3>${['iron'].filter(id => !j.owned.includes(id)).map(id => row(id, false)).join('')}<h3>钱多多 · 补给</h3><div class="button-row"><button class="secondary-button" id="original-buy-potion">金疮药 · 25 两</button><button class="secondary-button" id="original-buy-cleanse">清平丸 · 30 两</button></div><div class="item-row"><img src="${hd('item-book')}" alt="枪法秘籍"><div><strong>长虹枪法 · ${j.skillRank} 重</strong><p>每重增加 4 点伤害；最高四重。</p></div><button id="learn-skill" ${j.skillRank >= 4 ? 'disabled' : ''}>研习 ${j.skillRank * 90} 两</button></div><button class="primary-button" id="original-rest">歇脚调息 · 10 两</button>`, '武器 · 戒指 · 玉佩');
-  $$('[data-equip]').forEach(b => b.onclick = () => { if (equipItem(state, b.dataset.equip)) { saveGame(); originalBag(title); } });
-  $$('[data-buy]').forEach(b => b.onclick = () => { if (purchase(state, b.dataset.buy)) { saveGame(); originalBag(title); toast('已购入，在行囊中佩戴。'); } else toast('银两不足。'); });
-  $('#original-heal').onclick = () => { if (state.potions && state.hp < maxHP(state)) { state.potions--; state.hp = Math.min(maxHP(state), state.hp + 65); renderHUD(); saveGame(); originalBag(title); } };
-  const buy = (field, cost) => {
-    const target = field === 'potions' ? state : j;
-    if (state.coins < cost) return toast('银两不足。');
-    if (target[field] >= 99) return toast('行囊已满。');
-    state.coins -= cost; target[field]++; saveGame(); originalBag(title);
-  };
-  $('#original-buy-potion').onclick = () => buy('potions',25);
-  $('#original-buy-cleanse').onclick = () => buy('antidotes',30);
-  $('#learn-skill').onclick = () => { const cost = j.skillRank * 90; if (j.skillRank < 4 && state.coins >= cost) { state.coins -= cost; j.skillRank++; saveGame(); originalBag(title); } else toast('银两不足。'); };
-  $('#original-rest').onclick = () => { if (state.coins < 10) return toast('银两不足，可以开藏箱取得补给。'); state.coins -= 10; state.hp = maxHP(state); state.mp = maxMP(state); state.journey.partyVitals={}; renderHUD(); saveGame(); originalBag(title); toast('全队生命与精气已恢复。'); };
+function treasureCards(loot) {
+  return loot.map(({id,count=1})=>{const item=equipment[id];return `<article class="treasure-card ${item.rarity==='神兵'?'rare':''}"><div class="treasure-art"><img src="${itemArt(item)}" alt="${item.name}"></div><div><small>${escapeHTML(item.rarity||'装备')} · 收入行囊</small><h3>${escapeHTML(item.name)} <span>×${count}</span></h3><p>${escapeHTML(item.description)}</p></div></article>`;}).join('');
+}
+function showTreasure(loot,title='获得宝物',source='',supplies='') {
+  openSheet(title,`<div class="treasure-intro">${loot.some(x=>equipment[x.id].rarity==='神兵')?'金石有灵 · 神兵得主':'行囊添珍 · 江湖有缘'}</div>${treasureCards(loot)}${supplies?`<p class="treasure-supplies">${escapeHTML(supplies)}</p>`:''}<button id="treasure-confirm" class="primary-button">收好 · 继续前行</button>`,source,'treasure');
+  $('#treasure-confirm').onclick=closeSheet;
+}
+function originalBag(title='行囊') {
+ return openBag(state,{openSheet,toast,renderHUD,saveGame,prompt:promptNative,characters:originalCharacters},title);
+}
+function originalCharacters(id='hero',tab='attributes') {
+  const ids=['hero',...members()],stats=characterStats(state,id),level=actorLevel(state,id),vitals=id==='hero'?state:state.journey.partyVitals?.[id]||{},hp=vitals.hp??stats.maxHP,mp=vitals.mp??stats.maxMP;
+  const known=learnedSkills(state,id),knownIndices=learnedIndices(state,id),actorIndex=['hero','fei','lan'].indexOf(id),slots=id==='hero'?state.journey.equipped:state.journey.companionEquipment?.[id]||{};
+  const attributes=[['生命',`${hp} / ${stats.maxHP}`],['精气',`${mp} / ${stats.maxMP}`],['攻击',`${stats.attackMin}—${stats.attackMax}`],['防御',stats.defense],['命中',stats.hit+'%'],['闪避',stats.dodge.toFixed(2)+'%'],['暴击',stats.critical.toFixed(2)+'%'],['减伤',stats.reduction+'%'],['冰冻抗性',stats.resistance[0]+'%'],['灼烧抗性',stats.resistance[1]+'%'],['混乱抗性',stats.resistance[2]+'%'],['怒气',`${id==='hero'?state.journey.rage||0:vitals.rage||0} / ${stats.rage}`]];
+  const locked=skillSets[id].filter(s=>!known.some(k=>k.id===s.id)).map(s=>({...s,at:characterRules.autoLearn[actorIndex].indexOf(s.sourceIndex)}));
+  const skillRows=known.map(s=>`<article class="learned-skill"><div><strong>${escapeHTML(s.name)}${s.sourceIndex<56?' · '+s.rank+'重':''}</strong><small>${s.passive?'被动':s.rageCost?'怒气 '+s.rageCost:'精气 '+s.cost}</small></div><p>${escapeHTML(s.description)}</p>${s.sourceIndex<56&&s.rank<4?`<p>下一重：${characterRules.minimumLevels[s.sourceIndex+1]}级 · 研习对应秘籍</p>`:''}</article>`).join('')+locked.map(s=>`<article class="learned-skill locked"><div><strong>${s.name}</strong><small>${s.at}级习得</small></div><p>${s.description}</p></article>`).join('');
+  const manuals=Object.entries(state.journey.items||{}).filter(([n,count])=>count>0&&n>=17&&n<=72).map(([n,count])=>`<div class="manual-row"><div><strong>${escapeHTML(originalRules.items[n].name)} ×${count}</strong><p>${escapeHTML(originalRules.items[n].description)}</p></div><button data-study="${n}">研习</button></div>`).join('');
+  openSheet('人物',`<div class="character-tabs" role="tablist">${ids.map(a=>`<button data-character="${a}" role="tab" aria-selected="${a===id}">${partyNames[a]}</button>`).join('')}</div><div class="character-heading"><img src="assets/${characters[id].portrait}" alt="${partyNames[id]}"><div><h3>${partyNames[id]}</h3><p>${level}级 · ${characters[id].role}</p><p>阅历 ${id==='hero'?state.xp:state.journey.actorXP?.[id]||0} / ${experienceRequired(level)===Infinity?'已满级':experienceRequired(level)}</p></div></div><div class="character-tabs"><button data-character-tab="attributes" aria-selected="${tab==='attributes'}">属性装备</button><button data-character-tab="skills" aria-selected="${tab==='skills'}">武功秘籍</button></div>${tab==='attributes'?`<div class="attribute-grid">${attributes.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join('')}</div><h3>随身装备</h3><div class="character-gear">${Object.entries({weapon:'武器',armor:'衣甲',bracer:'护腕',ring:'戒指',jade:'玉佩'}).map(([slot,label])=>`<div><small>${label}</small>${equipment[slots?.[slot]]?.name||'未装备'}</div>`).join('')}</div><button id="character-bag" class="secondary-button">整理行囊</button>`:`${skillRows}<h3>随身秘籍</h3>${manuals||'<p>暂无秘籍。探索藏箱、战胜敌人或拜访商人可以取得。</p>'}`}`,'人物属性 · 武功 · 装备');
+  $$('[data-character]').forEach(b=>b.onclick=()=>originalCharacters(b.dataset.character,tab));
+  $$('[data-character-tab]').forEach(b=>b.onclick=()=>originalCharacters(id,b.dataset.characterTab));
+  $$('[data-study]').forEach(b=>b.onclick=()=>{const result=learnManual(state,id,Number(b.dataset.study));toast(result.message);if(result.ok){renderHUD();saveGame();originalCharacters(id,tab);}});
+  $('#character-bag')?.addEventListener('click',()=>originalBag());
 }
 function showOriginalJournal() {
   const j = state.journey, q = objective();
@@ -655,6 +736,7 @@ function interact(e) {
 }
 
 function beginBattle(id, fightingMembers = null) {
+  clearTimeout(toastTimer);$('#toast').classList.remove('show');
   if (state.journey?.flying) { state.journey.flying = false; renderHUD(); }
   clearTimeout(saveTimer); saveGame(true);
   combatSequence++; stopBattleAnimations();
@@ -665,10 +747,12 @@ function beginBattle(id, fightingMembers = null) {
   $('#app').classList.add('battle-mode'); $('#battle').classList.remove('hidden');
   $('#battle-title').textContent = encounters[id].name;
   $('#battle-scene').dataset.partySize = String(1 + battle.companions.length);
+  $('#battle-scene').dataset.enemyCount=String(battle.enemies.length);
+  requestAnimationFrame(resizeBattle);
   const landscape = encounters[id].landscape || (id === 'cave' ? 'cave' : id === 'boss' ? 'camp' : 'forest');
   $('#battle-scene').style.backgroundImage = `linear-gradient(#142e2511,#142e2533),url('${hd('landscape-' + landscape)}')`;
   const position = (side, index, sprite) => {
-    const p = battlePosition(side, index);
+    const p = battlePosition(side, index, side==='ally'?1+battle.companions.length:battle.enemies.length);
     return `left:${p.x}%;top:${p.y}%;--battle-facing:${battleFacingScale(sprite, side)};--attack-direction:${side === 'ally' ? -1 : 1}`;
   };
   $('#allies').innerHTML = `<button class="battle-actor ally" id="battle-hero" data-ally="hero" data-sprite="linfy" style="${position('ally', 0, 'linfy')}"><div class="sprite-view" style="background-image:url('${hd('battle-linfy')}')"></div><span class="actor-label">凌飞云</span><span class="enemy-hp"><i></i></span></button>` +
@@ -700,7 +784,7 @@ function updateBattleCursors() {
     const fallen = el?.dataset.defeated || el?.classList.contains('dead');
     cursor.hidden = battle.outcome || !el || !!fallen;
     if (cursor.hidden) continue;
-    const point = battleAnchor(el), height = ({hero:56,fei:44,lan:42})[id] || 52;
+    const point = battleAnchor(el), height = ({hero:39,fei:34,lan:35})[id] || 40;
     cursor.style.left = `${point.x - 9}px`; cursor.style.top = `${point.y-(height+3)*point.scale-14}px`;
   }
 }
@@ -720,7 +804,7 @@ function renderBattle() {
     if(a.hp>0 && el.dataset.defeated) { delete el.dataset.defeated; el.classList.remove('fallen'); playBattleAnimation(el,'idle',{loop:true}); }
   }
   for (const e of battle.enemies) {
-    const el = $(`[data-enemy="${e.id}"]`), plan = intent(e, battle.round);
+    const el = $(`[data-enemy="${e.id}"]`), plan = battle.native?{text:'',heavy:false}:intent(e, battle.round);
     el.classList.toggle('selected', selectedEnemy === e.id && e.hp > 0); el.disabled = e.hp <= 0;
     el.querySelector('.enemy-hp i').style.width = `${Math.max(0, e.hp) / e.maxHP * 100}%`;
     el.querySelector('.enemy-intent').textContent = [e.freeze ? '冰冻' : '', e.burn ? '灼烧' : '', e.confuse ? '混乱' : '', plan.text].filter(Boolean).join(' · ');
@@ -732,9 +816,12 @@ function renderBattle() {
     const a = button.dataset.action;
     button.disabled = battleBusy || !!battle.outcome || (a === 'sweep' && (actor.id!=='hero' || actor.mp < 15 || state.level < 2));
   });
-  $('[data-action="potion"] small').textContent = `金疮药 ${battle.potions} · 清平丸 ${battle.antidotes || 0}`;
+  $('[data-action="potion"] small').textContent = battle.native?'普通药耗行动 · 特级药不耗':`金疮药 ${battle.potions} · 清平丸 ${battle.antidotes || 0}`;
   $('[data-action="attack"]').title = `${actor.name} · ${battle.spear ? ({hero:'长枪',fei:'双环',lan:'兰剑'})[actor.id] : '流云剑'}，攻击所选敌人`;
+  $('[data-action="attack"] small').textContent=battle.native?'消耗本次行动':'普攻 · 回气 3';
   $('[data-action="skill"] small').textContent = battle.spear ? `${actor.name} · 选择招式` : '真气 8 · 打断蓄力';
+  $('[data-action="guard"]').title=battle.native?'提高50个百分点减伤，直到本回合结束':'减少伤害并恢复精气';
+  $('[data-action="guard"] small').textContent=battle.native?'减伤提升 50%':'减伤 75% · 回气 9';
   $('#combat-shop').disabled = battleBusy || !!battle.outcome;
   $('#combat-status').textContent = Object.entries(actor.statuses || {}).filter(([,v])=>v>0).map(([id,n])=>`${({freeze:'冰冻',burn:'灼烧',confuse:'混乱'})[id]} ${n}`).join(' · ');
   updateBattleCursors();
@@ -746,7 +833,8 @@ function showBattleSkills(actor = battle?.activeActor || 'hero') {
     return battleChoiceMenu('技能', moves.map(s=>({...s,note:`精气 ${s.cost}`,disabled:battle.mp<s.cost,reason:'精气不足，可攻击或防御回气'})), choice=>takeTurn(choice.action), `凌飞云 · 精气 ${battle.mp}/${battle.maxMP}`);
   }
   const ally = battle.companions.find(a => a.id === actor), mp = ally ? ally.mp : battle.mp;
-  const choices=skillSets[actor].map(skill=>{const noTarget=skill.effect==='revive'&&!partyActors(battle).some(a=>a.hp<=0);return {...skill,note:`精气 ${skill.cost}`,disabled:mp<skill.cost||noTarget,reason:mp<skill.cost?'精气不足，可攻击或防御回气':noTarget?'没有倒下的队友':''};});
+  const rage=ally?ally.rage||0:battle.rage||0;
+  const choices=learnedSkills(state,actor).filter(s=>!s.passive).map(skill=>{const noTarget=skill.effect==='revive'&&!partyActors(battle).some(a=>a.hp<=0),lackRage=rage<skill.rageCost;return {...skill,name:skill.name+(skill.sourceIndex<56?` · ${skill.rank}重`:''),note:skill.rageCost?`怒气 ${skill.rageCost}`:`精气 ${skill.cost}`,disabled:mp<skill.cost||noTarget||lackRage,reason:mp<skill.cost?(battle.native?'精气不足，可用回气药品恢复':'精气不足，可攻击或防御回气'):lackRage?'怒气不足':noTarget?'没有倒下的队友':''};});
   battleChoiceMenu('技能',choices,skill=>{
     if(['heal','revive'].includes(skill.effect)) chooseAllyTarget('skill',skill.id,skill.effect==='revive');
     else takeTurn('skill',skill.id);
@@ -755,7 +843,7 @@ function showBattleSkills(actor = battle?.activeActor || 'hero') {
 function battleChoiceMenu(title, choices, confirm, subtitle, confirmLabel='确定') {
   if (!battle || battleBusy || battle.outcome) return;
   const first=choices.find(c=>!c.disabled)||choices[0]; let selected=first;
-  openSheet(title, `<div class="native-choice-list">${choices.map(c=>`<button class="native-choice ${c.disabled?'unavailable':''}" data-battle-choice="${c.id}" aria-pressed="${c===selected}"><strong>${escapeHTML(c.name)}</strong><small>${escapeHTML(c.note||'')}</small></button>`).join('')}</div><p id="native-choice-description" role="status"></p><div class="native-menu-foot"><span id="native-choice-target"></span><button id="native-choice-confirm" class="native-confirm">${confirmLabel}</button></div>`, subtitle, 'battle-menu');
+  openSheet(title, `<div class="native-choice-list">${choices.map(c=>`<button class="native-choice ${c.disabled?'unavailable':''}" data-battle-choice="${c.id}" aria-pressed="${c===selected}"><i class="skill-seal fx-${c.fx||'item'}" aria-hidden="true">${escapeHTML(c.name[0])}</i><span><strong>${escapeHTML(c.name)}</strong><em>${escapeHTML(c.description||'')}</em></span><small>${escapeHTML(c.note||'')}</small></button>`).join('')}</div><p id="native-choice-description" role="status"></p><div class="native-menu-foot"><span id="native-choice-target"></span><button id="native-choice-confirm" class="native-confirm">${confirmLabel}</button></div>`, subtitle, 'battle-menu');
   const preview=()=>{
     $$('[data-battle-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.battleChoice===selected.id)));
     $('#native-choice-description').textContent=selected.disabled?`${selected.description} · ${selected.reason||'无法使用'}`:selected.description;
@@ -768,6 +856,16 @@ function battleChoiceMenu(title, choices, confirm, subtitle, confirmLabel='确�
 }
 function showBattleItems() {
   if (!battle || battleBusy || battle.outcome) return;
+  if(battle.spear){
+    const choices=Object.entries(battle.itemCounts||{}).filter(([n,count])=>(n<17||Number(n)===73)&&count>0).map(([n,count])=>({id:'item-'+n,index:Number(n),name:itemRecord(n).name,note:'×'+count,description:itemRecord(n).description}));
+    if(battle.potions)choices.push({id:'potion',name:'金疮药',note:'×'+battle.potions,description:'旧行囊补给 · 回复65生命'});
+    if(!choices.length)return toast('行囊中没有药品，可在战斗商店补给。');
+    return battleChoiceMenu('道具',choices,item=>{
+      if(item.index!=null&&itemRecord(item.index).properties[2]===2)return takeTurn('item',String(item.index),battle.activeActor);
+      const targets=partyActors(battle).filter(a=>item.index!=null?(itemRecord(item.index).properties[9]&2)||a.hp>0:a.hp>0);
+      battleChoiceMenu('选择我方目标',targets.map(a=>({id:a.id,name:a.name,note:`血 ${a.hp}/${a.maxHP}`,description:`精气 ${a.mp}/${a.maxMP}`})),target=>takeTurn(item.id==='potion'?'potion':'item',item.index==null?'rainbow':String(item.index),target.id),item.name,'使用');
+    },'普通药品消耗出手 · 特级药品不耗出手','选择人物');
+  }
   battleChoiceMenu('道具',[
     {id:'potion',name:'金疮药',note:`×${battle.potions}`,description:'单体恢复 65 点生命，使用后选择我方目标。',disabled:!battle.potions,reason:'金疮药已用尽'},
     {id:'cleanse',name:'清平丸',note:`×${battle.antidotes||0}`,description:'解除当前人物的冰冻、灼烧与混乱。',disabled:!battle.antidotes,reason:'清平丸已用尽'}
@@ -790,32 +888,37 @@ function playBattleAnimation(element, pose, { loop = false, lunge = false, hold 
   const previous = actorAnimations.get(element); previous?.resolve?.();
   element.classList.remove('acting');
   if (lunge && !settings.reducedMotion) { void element.offsetWidth; element.classList.add('acting'); }
-  const names = element.classList.contains('enemy') ? battleAnimations.enemy : battleAnimations.ally;
+  const names = element.classList.contains('enemy')&&meta.animations.length<10 ? battleAnimations.enemy : battleAnimations.ally;
   const steps = meta.animations[names[pose] ?? 0] || meta.animations[0];
   const ticks = steps.reduce((n, step) => n + Math.max(1, step[1]), 0);
   const length = duration || Math.max(ticks * 80, loop ? 0 : pose === 'defeat' ? 480 : pose === 'hurt' ? 320 : 400);
   element.style.setProperty('--action-duration', `${length}ms`);
-  sprite.style.backgroundSize = `${meta.frames * 96}px 96px`;
+  const width=meta.cellWidth||96,height=meta.cellHeight||96;
+  sprite.style.width=width+'px';sprite.style.height=height+'px';sprite.style.marginLeft=(width/2-(meta.originX||48))+'px';sprite.style.marginTop=(80-(meta.originY||80))+'px';
+  sprite.style.transformOrigin=`${meta.originX||48}px ${meta.originY||80}px`;
+  sprite.style.backgroundSize = `${meta.frames * width}px ${height}px`;
   element.dataset.pose = pose;
-  sprite.style.backgroundPosition = `${-96 * steps[0][0]}px 0`;
+  sprite.style.backgroundPosition = `${-width * steps[0][0]}px 0`;
   return new Promise(resolve => actorAnimations.set(element, { steps, start: performance.now(), loop, hold, resolve,
-    duration: length, frameMs: 80, nativeLength: ticks * 80 }));
+    duration: length, frameMs: 80, nativeLength: ticks * 80,cellWidth:width }));
 }
 function updateBattleAnimations(now) {
   for (const [element, animation] of actorAnimations) {
     const elapsed = now - animation.start;
     if (!animation.loop && elapsed >= animation.duration) {
       actorAnimations.delete(element); element.classList.remove('acting');
-      if (animation.hold) element.querySelector('.sprite-view').style.backgroundPosition = `${-96 * animation.steps.at(-1)[0]}px 0`;
+      if (animation.hold) element.querySelector('.sprite-view').style.backgroundPosition = `${-animation.cellWidth * animation.steps.at(-1)[0]}px 0`;
       else playBattleAnimation(element, 'idle', { loop: true });
       animation.resolve();
-    } else element.querySelector('.sprite-view').style.backgroundPosition = `${-96 * animationFrame(animation.steps, animation.loop ? elapsed : Math.min(elapsed, animation.nativeLength-1), animation.frameMs)}px 0`;
+    } else element.querySelector('.sprite-view').style.backgroundPosition = `${-animation.cellWidth * animationFrame(animation.steps, animation.loop ? elapsed : Math.min(elapsed, animation.nativeLength-1), animation.frameMs)}px 0`;
   }
   updateBattleCursors();
 }
 function battleAnchor(element) {
   const rect = element.querySelector('.sprite-view').getBoundingClientRect(), board = $('#battle-scene').getBoundingClientRect();
-  return { x: rect.left - board.left + rect.width / 2, y: rect.bottom - board.top - rect.height / 6, scale: rect.width / 96 };
+  const meta=battleSprites[element.dataset.sprite],scale=rect.width/(meta.cellWidth||96);
+  const origin=battleFacingScale(element.dataset.sprite,element.classList.contains('enemy')?'enemy':'ally')<0?(meta.cellWidth||96)-(meta.originX||48):(meta.originX||48);
+  return { x: rect.left - board.left + origin*scale, y: rect.top - board.top + (meta.originY||80)*scale, scale };
 }
 async function playBattleEffect(index, element, options = {}) {
   if (!element || element.classList.contains('dead')) return;
@@ -844,7 +947,7 @@ async function showBattleEvent(event) {
   if (event.amount !== undefined) {
     const point = battleAnchor(el), hit = document.createElement('span');
     hit.className = 'floating-hit' + (event.type === 'heal' ? ' heal' : '');
-    hit.textContent = (event.type === 'heal' ? '+' : '−') + event.amount;
+    hit.textContent = event.type==='heal'&&event.manaAmount&&!event.amount?'+'+event.manaAmount+' 气':(event.type === 'heal' ? '+' : '−') + event.amount;
     hit.style.left = `${point.x - 15}px`; hit.style.top = `${point.y - 72}px`;
     $('#battle-fx').append(hit);
     const effect = event.type === 'damage' && !event.skill ? playBattleEffect(typeof event.source==='number'?7:5, el) : Promise.resolve();
@@ -853,10 +956,10 @@ async function showBattleEvent(event) {
   }
 }
 async function takeTurn(action, skillId = 'rainbow', allyTarget = battle?.activeActor) {
-  if (!battle || battleBusy || battle.outcome) return;
+  if (!battle || battleBusy || battle.outcome) return false;
   const actorId = battle.activeActor || 'hero';
   const result = battleTurn(battle, action, selectedEnemy, skillId, actorId, allyTarget);
-  if (result.error) return toast(result.error);
+  if (result.error) {toast(result.error);return false;}
   const sequence = combatSequence, active = () => battle && sequence === combatSequence;
   battleBusy = true; renderBattle();
   for (const plan of battleSequence(result.events, action)) {
@@ -864,6 +967,7 @@ async function takeTurn(action, skillId = 'rainbow', allyTarget = battle?.active
     const element = battleElement(plan.source), name = partyNames[plan.source] ||
       battle.enemies.find(e => e.id === plan.source)?.name || '灼烧';
     const move = plan.events.find(e => e.skill)?.skill;
+    if(plan.cast&&move){plan.duration=plan.impact=Math.max(400,nativeDuration(nativeCombat.sprites.currency,move.s),nativeDuration(nativeCombat.sprites.currency,move.r));}
     $('#skill-banner').innerHTML = `<small>${name}</small><strong>${move?.name || (plan.pose === 'attack' ? '攻击' : plan.events[0].text)}</strong>`;
     $('#skill-banner').classList.add('show'); $('#battle').dataset.actor = String(plan.source);
     if (plan.windup) {
@@ -883,14 +987,14 @@ async function takeTurn(action, skillId = 'rainbow', allyTarget = battle?.active
     }
     const acting = playBattleAnimation(element, plan.pose, {duration:plan.duration});
     const effects = plan.cast && move ? [playBattleEffect(move.s,element),
-      ...[...new Set(plan.events.filter(e=>!(move.effect==='drain' && e.type==='heal')).map(e=>e.target))].map((id,i)=>playBattleEffect(move.r,battleElement(id),{ambient:i===0}))] : [];
+      ...[...new Set(plan.events.filter(e=>!e.casterEffect&&!(move.effect==='drain' && e.type==='heal')).map(e=>e.target))].map((id,i)=>playBattleEffect(move.r,battleElement(id),{ambient:i===0}))] : [];
     await Promise.all([sleep(plan.impact), ...effects]);
     if (!active()) return;
     $('#battle').dataset.stage = 'impact';
     const hits = [];
     for (const event of plan.events) {
       battle = battleEventState(battle, event); renderBattle();
-      $('#battle-log').textContent = event.text + (event.amount !== undefined ?
+      $('#battle-log').textContent = event.text + (event.type==='heal'&&event.manaAmount&&!event.amount?` · 恢复 ${event.manaAmount} 点精气`:event.amount !== undefined ?
         ' · ' + (event.type === 'heal' ? '恢复' : '造成') + ' ' + event.amount + ' 点' + (event.type === 'heal' ? '生命' : '伤害') : '');
       hits.push(showBattleEvent(event));
     }
@@ -912,6 +1016,7 @@ async function takeTurn(action, skillId = 'rainbow', allyTarget = battle?.active
     $('#battle-outcome').textContent = battle.outcome === 'victory' ? '战斗胜利' : '暂退 · 再起';
     $('#battle-outcome').classList.add('show'); await sleep(850); if(active()) finishBattle();
   }
+  return true;
 }
 function leaveBattle() {
   combatSequence++; stopBattleAnimations(); $('#battle-fx').replaceChildren(); $('#battle-outcome').classList.remove('show');
@@ -921,22 +1026,41 @@ function leaveBattle() {
 function finishBattle() {
   if (!battle) return;
   const b = battle, encounter = encounters[b.id];
-  if (b.outcome === 'defeat') {
-    openSheet('暂歇锋芒', `<div class="victory-reward"><span>胜负未定</span></div><p>你退到安全处休整，已取得的物品和主线进度保留。</p><p>留意敌人的「蓄力重击」：防御可减少 75% 伤害。分别指挥队员，治疗时选中需要恢复的同伴。</p><button class="primary-button" id="retry-battle">休整后再战</button><div class="button-row"><button class="secondary-button" id="retreat-battle">暂退休整</button></div>`, '不必独自扛下所有风雨');
-    const rest = () => { state.hp = maxHP(state); state.mp = maxMP(state); if(state.journey) state.journey.partyVitals={}; };
-    $('#retry-battle').onclick = () => { forceCloseSheet(); leaveBattle(); rest(); beginBattle(b.id, b.companions.map(a => a.id)); };
-    $('#retreat-battle').onclick = () => { forceCloseSheet(); leaveBattle(); rest(); transition(state.journey ? state.map : 12); };
+  if(b.outcome==='escaped'){
+    state.hp=b.hp;state.mp=b.mp;state.journey.items=structuredClone(b.itemCounts);state.journey.partyVitals=Object.fromEntries(b.companions.map(a=>[a.id,{hp:a.hp,mp:a.mp,rage:a.rage}]));
+    const done=nativeScriptRunning?storyBattleDone:null;storyBattleDone=null;forceCloseSheet();leaveBattle();saveGame(true);toast('遁返脱身 · 未获得本场战利品');done?.(false);return;
+  }
+  if(b.outcome==='defeat'&&encounter.expectedOutcome==='defeat'){
+    state.journey.items=structuredClone(b.itemCounts||{});
+    openSheet('战局未利', '<p>众人力战不敌，故事仍将继续。</p><button class="primary-button" id="story-defeat-continue">继续剧情</button>',encounter.name);
+    $('#story-defeat-continue').onclick=()=>{
+      const done=storyBattleDone;storyBattleDone=null;forceCloseSheet();leaveBattle();state.hp=maxHP(state);state.mp=maxMP(state);state.journey.partyVitals={};saveGame(true);done?.(false);
+    };
     return;
   }
-  state.hp = b.hp; state.mp = b.mp; state.potions = b.potions; state.coins += encounter.reward; state.xp += encounter.xp;
-  if (state.journey) { state.journey.antidotes = b.antidotes;
-    state.journey.partyVitals ||= {};
-    for(const a of b.companions) state.journey.partyVitals[a.id]={hp:a.hp,mp:a.mp};
+  if (b.outcome === 'defeat') {
+    openSheet('暂歇锋芒', `<div class="victory-reward"><span>胜负未定</span></div><p>你退到安全处休整，已取得的物品和主线进度保留。</p><p>${b.native?'留意人物等级、装备与敌人的异常招式。防御可提高减伤，精气可用药品恢复。':'留意敌人的「蓄力重击」：防御可减少 75% 伤害。'}分别指挥队员，治疗时选中需要恢复的同伴。</p><button class="primary-button" id="retry-battle">休整后再战</button><div class="button-row"><button class="secondary-button" id="retreat-battle">暂退休整</button></div>`, '不必独自扛下所有风雨');
+    const rest = () => { state.hp = maxHP(state); state.mp = maxMP(state); if(state.journey) state.journey.partyVitals={}; };
+    $('#retry-battle').onclick = () => { forceCloseSheet(); leaveBattle(); rest(); beginBattle(b.id, b.companions.map(a => a.id)); };
+    $('#retreat-battle').onclick = () => {const done=nativeScriptRunning?storyBattleDone:null;if(done)storyBattleDone=null;forceCloseSheet();leaveBattle();rest();transition(state.journey ? state.map : 12);done?.(false);};
+    return;
   }
-  const oldLevel = state.level; state.level = state.journey ? Math.min(20, 1 + Math.floor(state.xp / 180)) : Math.min(4, 1 + Math.floor(state.xp / 85));
-  const leveled = oldLevel < state.level;
+  state.hp = b.hp; state.mp = b.mp; state.potions = b.potions; state.coins += encounter.reward;if(!state.journey)state.xp += encounter.xp;
+  if (state.journey) { state.journey.antidotes = b.antidotes;
+    state.journey.items=structuredClone(b.itemCounts||{});
+    state.journey.partyVitals ||= {};
+    state.journey.rage=b.rage||0;for(const a of b.companions) state.journey.partyVitals[a.id]={hp:a.hp,mp:a.mp,rage:a.rage||0};
+  }
+  const loot=state.journey?battleRewards(state,encounter):[];
+  const itemLoot=state.journey?originalItemDrops(state,encounter):[];
+  for(const entry of loot)remember(`【${encounter.name}】获得${equipment[entry.id].name}。`);
+  const oldLevel=state.level,progress=state.journey?gainExperience(state,encounter.xp):null;
+  if(!state.journey)state.level=Math.min(4,1+Math.floor(state.xp/85));
+  const leveled=oldLevel<state.level;
+  for(const skill of progress?.learned||[])remember(`${partyNames[skill.actor]}领悟${skill.name}。`);
   if (leveled) { state.hp = maxHP(state); state.mp = maxMP(state); if(state.journey) state.journey.partyVitals={}; }
-  openSheet('战斗胜利', `<div class="native-rewards"><p><span>获得经验</span><strong>${encounter.xp}</strong></p><p><span>获得金钱</span><strong>${encounter.reward} 两</strong></p></div>${leveled ? `<p class="native-level-up">等级提升至 ${state.level} 阶 · 生命精气全满</p>` : ''}<button id="battle-reward" class="primary-button">确定 · 继续前行</button>`, encounter.name);
+  openSheet('战斗胜利', `<div class="native-rewards"><p><span>获得经验</span><strong>${encounter.xp}</strong></p><p><span>获得金钱</span><strong>${encounter.reward} 两</strong></p></div>${loot.length?`<div class="loot-heading">战利品 · 已收入行囊</div>${treasureCards(loot)}`:'<p class="no-loot">此战未掉落装备</p>'}${leveled ? `<p class="native-level-up">等级提升至 ${state.level} 阶 · 生命精气全满</p>` : ''}<button id="battle-reward" class="primary-button">确定 · 继续前行</button>`, encounter.name);
+  $('#battle-reward').insertAdjacentHTML('beforebegin',itemLoot.map(i=>`<p>获得 ${escapeHTML(i.name)} ×${i.count}</p>`).join('')+(progress?.learned||[]).map(s=>`<p class="native-level-up">${partyNames[s.actor]}领悟 ${s.name}</p>`).join(''));
   $('#battle-reward').onclick = () => {
     forceCloseSheet(); leaveBattle();
     if (state.journey) { const done = storyBattleDone; storyBattleDone = null; done?.(); renderHUD(); saveGame(true); return; }
@@ -968,6 +1092,7 @@ function endingPanel() {
 }
 
 function openSheet(title, content, subtitle = '江湖随身笺', variant = '') {
+  clearTimeout(toastTimer);$('#toast').classList.remove('show');
   if (!activeSheet) sheetReturnFocus = document.activeElement;
   activeSheet = title;
   $('#sheet-backdrop').dataset.kind = variant;
@@ -983,16 +1108,20 @@ function closeSheet() {
   if (battle?.outcome) return; // Rewards and recovery must be acknowledged explicitly.
   activeSheet = null; $('#sheet-backdrop').classList.add('hidden'); $('#app').classList.remove('modal-open');
   sheetReturnFocus?.focus?.();
+  const dismiss=sheetDismiss;sheetDismiss=null;dismiss?.();
 }
 function forceCloseSheet() {
   activeSheet = null; $('#sheet-backdrop').classList.add('hidden'); $('#app').classList.remove('modal-open');
+  const dismiss=sheetDismiss;sheetDismiss=null;dismiss?.();
 }
 function showPanel(name) {
   if(storyPlayer?.running)return;
+  if(nativeScriptRunning)return;
   if (!started || dialogue) return;
   if (battle) return toast('交锋中先专心出招，战后再整理行囊。');
   if (state.journey && name === 'bag') return originalBag();
   if (state.journey && name === 'journal') return showOriginalJournal();
+  if (state.journey && name === 'party') return originalCharacters();
   if (name === 'party') {
     const card = (id, description) => `<div class="character-card"><img src="assets/${characters[id].portrait}" alt="${characters[id].name}"><div><h3>${characters[id].name}</h3><small>${characters[id].role}</small><p>${description}</p>${id === 'hero' ? `<div class="stat-line"><span>境界 ${state.level}</span><span>阅历 ${state.xp}</span><span>真气 ${state.mp}/${maxMP(state)}</span></div>` : ''}</div></div>`;
     openSheet('携友同行', card('hero', state.journey ? '凤凰山上的长枪少年。普攻回复真气，长虹贯日可以打断敌人蓄力。' : '剑护山河，也护身边人。普攻回复真气，凝神守势后下一剑威力提高。') +
@@ -1042,7 +1171,7 @@ function helpPanel(back = gameMenu) {
   $('#help-back').onclick = back;
 }
 function aboutPanel(back = gameMenu) {
-  openSheet('关于游戏', '<div class="about-mark">满江红二 · 铁骑红颜</div><p>原版作品由仙掌软件制作。本网页版使用原作像素素材、六章文字与过场记录，适配手机点触和电脑操作。</p><p>已串联 67 个主线节点及 1,877 条对白、旁白，支持逐人手动战斗、原版技能动画、装备、御剑与两项汴京支线。封面、米黄窗框和红字菜单参考 Java 原版。</p><p>回合编排、伤害公式和任务触发使用网页实现；原版速度算法、全部隐藏事件及完整引擎行为仍有差异。</p><div class="about-links"><a href="https://github.com/malqqin/manjianghong-web" target="_blank" rel="noopener noreferrer">GitHub 项目 ↗</a></div><button class="secondary-button menu-back" id="about-back">返回</button>', '原作六章 · 触屏重制');
+  openSheet('关于游戏', '<div class="about-mark">满江红二 · 铁骑红颜</div><p>原版作品由仙掌软件制作。本网页版沿用原作六章文字与过场记录，画面参考原素材进行 AI 高清重绘，适配手机点触和电脑操作。</p><p>已串联 67 个主线节点及 1,877 条对白、旁白，支持逐人手动战斗、原版技能动画、装备、御剑与两项汴京支线。封面、米黄窗框和红字菜单参考 Java 原版。</p><p>回合编排、伤害公式和任务触发使用网页实现；原版速度算法、全部隐藏事件及完整引擎行为仍有差异。</p><div class="about-links"><a href="https://github.com/malqqin/manjianghong-web" target="_blank" rel="noopener noreferrer">GitHub 项目 ↗</a></div><button class="secondary-button menu-back" id="about-back">返回</button>', '原作六章 · 触屏重制');
   $('#about-back').onclick = back;
 }
 function settingsPanel(back = gameMenu) {
@@ -1123,8 +1252,6 @@ $('#dialogue-next').onclick = advanceDialogue;
 $('#dialogue-text').onclick = () => { if(storyPlayer?.running)storyPlayer.advance();else if (dialogue && !dialogue.lines[dialogue.index].choices) advanceDialogue(); };
 $('#dialogue').addEventListener('click',event=>{if(storyPlayer?.running&&!event.target.closest('button,#dialogue-text'))storyPlayer.advance();});
 $('#native-caption').onclick=$('#native-poem').onclick=$('#native-cg').onclick=()=>storyPlayer?.advance();
-$('#native-skip').onclick=()=>storyPlayer?.skip();
-$('#dialogue-skip').onclick = skipDialogue;
 $('#start-game').onclick = startNew;
 $('#continue-game').onclick = () => launch(true);
 $('#title-settings').onclick = () => settingsPanel(closeSheet);
@@ -1132,7 +1259,7 @@ $('#title-help').onclick = () => helpPanel(closeSheet);
 $('#title-about').onclick = () => aboutPanel(closeSheet);
 $('#sheet-close').onclick = closeSheet;
 $('#sheet-backdrop').onclick = event => { if (event.target === $('#sheet-backdrop')) closeSheet(); };
-$('#guide-button').onclick = $('#mobile-quest').onclick = $('#nav-guide').onclick = guide;
+$('#guide-button').onclick = $('#mobile-quest').onclick = $('#nav-guide').onclick = () => {if(guideActive){guideActive=false;path=[];destination=null;pendingInteraction=null;stopFollowers();syncGuideUI();return;}guide();};
 $('#map-button').onclick = mapPanel;
 $('#settings-button').onclick = gameMenu;
 $('#brand-home').onclick = event => { event.preventDefault(); gameMenu(); };
@@ -1140,6 +1267,7 @@ $('#sound-button').onclick = () => { settings.sound = !settings.sound; applySett
 $('#flight-button').onclick = () => {
   if(storyPlayer?.running)return;
   if (!started || !state.journey || dialogue || battle || activeSheet || scenePending) return;
+  if(!canFly(state))return toast('尚未习得御剑之术，请先继续主线。');
   const j = state.journey; j.flying = !j.flying;
   path = []; destination = null; pendingInteraction = null; guideActive = false;
   if (!j.flying) {
@@ -1151,6 +1279,15 @@ $('#flight-button').onclick = () => {
 };
 $('#combat-shop').onclick = () => {
   if (!battle || battleBusy || battle.outcome) return;
+  if(battle.spear)return battleChoiceMenu('战斗商店',originalRules.items.slice(0,6).map(item=>({id:'buy-'+item.index,index:item.index,name:item.name,description:item.description,note:item.properties[0]+'两',disabled:state.coins<item.properties[0],reason:'银两不足'})),item=>{
+    const choices=partyActors(battle).filter(a=>a.hp>0||(itemRecord(item.index).properties[9]&2));
+    battleChoiceMenu('选择我方目标',choices.map(a=>({id:a.id,name:a.name,note:`血 ${a.hp}/${a.maxHP}`,description:`精气 ${a.mp}/${a.maxMP}`})),choice=>{
+      const record=itemRecord(item.index);if(state.coins<record.properties[0])return;
+      // Purchased special medicines share the bag's original flags and action path.
+      state.coins-=record.properties[0];battle.itemCounts[item.index]=(battle.itemCounts[item.index]||0)+1;
+      takeTurn('item',String(item.index),choice.id).then(ok=>{if(!ok&&battle){state.coins+=record.properties[0];battle.itemCounts[item.index]--;}});
+    },item.name,'购入并服用');
+  },`银两 ${state.coins} · 购买不消耗出手`,'选择人物');
   const actor=partyActors(battle).find(a=>a.id===battle.activeActor);
   openSheet('商店', `<div class="wallet"><span>金钱</span><strong>${state.coins} 两</strong></div><div class="native-shop-item"><img src="${hd('item-potion')}" alt=""><strong>九衍丹</strong><span>60 两</span></div><p>为${actor.name}恢复 95 点生命，不消耗出手次数。${actor.hp>=actor.maxHP?'当前生命已满。':state.coins<60?'银两不足。':''}</p><button class="primary-button" id="buy-combat-heal" ${state.coins<60 || actor.hp>=actor.maxHP ? 'disabled' : ''}>购入并服用</button>`, `${actor.name} · 游戏内银两`);
   $('#buy-combat-heal').onclick = () => {
@@ -1194,6 +1331,7 @@ document.addEventListener('keydown', event => {
 window.addEventListener('pagehide', () => saveGame(true));
 document.addEventListener('visibilitychange', () => { if (document.hidden) { saveGame(true); music.stop(); } else if (settings.sound && started) music.start(); });
 new ResizeObserver(resize).observe(canvas);
+new ResizeObserver(resizeBattle).observe($('#battle-scene'));
 
 const mapRequests = new Map();
 function ensureMap(id) {
@@ -1220,14 +1358,15 @@ async function initialize() {
       if (!places[map.id]) places[map.id] = { name: originalStory.scenes.find(s=>s.map===map.id)?.name || '山河之间', mood: '山河入梦，故人入心。', spawn: [Math.floor(map.width/2),map.height-5] };
       tiles.set(map.id, component(map));
     }
-    sprites = data[1]; battleSprites = { ...data[2], ...await fetch('assets/enhanced/battle-extra.json').then(r => r.json()) };
+    sprites = data[1]; battleSprites = data[2];
     nativeCombat=data[4];
+    data[5].mapSizes=Object.fromEntries(data[0].map(map=>[map.id,[map.width*16,map.height*16]]));
     storyPlayer=new NativeStoryPlayer(data[5],images,ensureMap,()=>settings.reducedMotion);
-    for(const [name,meta] of Object.entries(battleSprites)) meta.animations=nativeCombat.sprites[name]?.animations.map(a=>a.steps) || meta.animations.map(steps=>steps.map(([f,t])=>[f,Math.max(1,t/4)]));
+    portalGraph=Object.fromEntries(Object.keys(data[5].scenes).map(key=>[key,scenePortals(data[5],key)]));
+    for(const [name,meta] of Object.entries(battleSprites)) meta.animations=nativeCombat.sprites[name]?.animations.map(a=>a.steps) || (meta.tickMs===80?meta.animations:meta.animations.map(steps=>steps.map(([f,t])=>[f,Math.max(1,t/4)])));
     for(const skill of Object.values(skillSets).flat()) skill.duration=Math.max(nativeDuration(nativeCombat.sprites.currency,skill.r),nativeDuration(nativeCombat.sprites.currency,skill.s));
     const effectImage=new Image(); effectImage.src=hd('native-currency'); await effectImage.decode();
     combatEffects=new NativeBattleEffects($('#battle-scene'),$('#battle-fx'),nativeCombat.sprites.currency,effectImage,battleAnchor);
-    buildStoryEntities();
     entities = rawEntities.map(e => ({ ...e, ...nearestTile(tiles.get(e.map), e.x, e.y) }));
     const names = [...[0,12,4,19,39].map(id => `map-${id}.png`), ...[0, 1, 2, 7, 9, 13, 17, 27, 39, 40, 43, 44, 45, 46, 47].map(id => `sprite-${id}.png`), 'flower.png', 'fx-wave.png', 'fx-aura.png', 'fx-fire.png', 'slash.png'];
     names.push('flight-0.png','flight-1.png','flight-2.png');

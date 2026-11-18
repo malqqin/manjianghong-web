@@ -5,16 +5,8 @@ import { facingDirection, actorFrame, rasterActorFrame, animationFrame, battleEv
 import { newGame, createBattle, battleTurn } from '../core.js';
 const sprites = JSON.parse(await readFile(new URL('../assets/sprites.json', import.meta.url)));
 
-test('Raster people use the visually calibrated back/front/side source views for idle and every walking frame', async () => {
-  const atlas = JSON.parse(await readFile(new URL('../assets/enhanced/atlas.json', import.meta.url)));
-  assert.deepEqual(atlas.sourceDirections, { up: 0, down: 1, left: 2, right: 3 });
-  assert.equal(atlas.nativeFrames['0'].up.idle, 0);
-  assert.equal(atlas.nativeFrames['0'].down.idle, 4);
-  assert.equal(atlas.nativeFrames['9'].up.idle, 2);
-  assert.equal(atlas.nativeFrames['9'].down.idle, 0);
-  assert.deepEqual(atlas.nativeFrames['7'].up.walk, [1, 0, 2, 0]);
-  assert.deepEqual(atlas.nativeFrames['7'].down.walk, [4, 3, 5, 3]);
-  for (const [row, direction] of atlas.directions.entries()) {
+test('Runtime raster people select back/front/side idle and walking cells independently', () => {
+  for (const [row, direction] of ['up','down','left','right'].entries()) {
     assert.equal(rasterActorFrame(direction, false, 100), row * 9);
     for (let i = 0; i < 24; i++) {
       const frame = rasterActorFrame(direction, true, i * 90);

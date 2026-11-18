@@ -23,6 +23,9 @@ export function createFieldEncounters(map, ground, spawn, occupied = []) {
 }
 export function touchingEncounter(player, entities, { flying = false, suppressed = null } = {}) {
   if (flying) return null;
-  return entities.find(e => e.contact && e.id !== suppressed &&
-    Math.hypot(player.x - (e.x * 16 + 8), player.y - (e.y * 16 + 8)) <= 15) || null;
+  return entities.find(e=>{
+    if(!e.contact||e.id===suppressed)return false;
+    if(e.contactRect){const r=e.contactRect;return player.x>=r.x-5&&player.x<=r.x+r.width+5&&player.y>=r.y-5&&player.y<=r.y+r.height+5;}
+    return Math.hypot(player.x-(e.x*16+8),player.y-(e.y*16+8))<=15;
+  })||null;
 }

@@ -29,7 +29,7 @@ export function actorFrame(metadata, direction, moving, elapsed) {
 }
 export const battleAnimations = {
   ally: { idle: 0, attack: 3, skill: 9, guard: 4, hurt: 6, charge: 9, defeat: 8, victory: 0 },
-  enemy: { idle: 0, attack: 2, hurt: 3, defeat: 4 }
+  enemy: { idle: 0, attack: 2, skill: 2, guard: 0, hurt: 3, defeat: 4 }
 };
 // Original battle sheets have different native directions. Flip the image only.
 const NATIVE_BATTLE_FACING = { linfy: 'left', nalan_da: 'left', gengml: 'left', mon2: 'left' };
@@ -37,9 +37,11 @@ export function battleFacingScale(sprite, side) {
   const native = NATIVE_BATTLE_FACING[sprite] || 'right';
   return native === (side === 'enemy' ? 'right' : 'left') ? 1 : -1;
 }
-export function battlePosition(side, index = 0) {
-  return side === 'ally' ? [{ x: 73, y: 48 }, { x: 79, y: 64 }, { x: 85, y: 80 }][index] :
-    { x: index ? 18 : 33, y: index ? 53 : 81 };
+export function battlePosition(side, index = 0,count=side==='ally'?3:2) {
+  if(side==='ally')return count===1?{x:76,y:66}:count===2?[{x:73,y:58},{x:79,y:76}][index]:[{x:72,y:54},{x:77,y:66},{x:82,y:78}][index];
+  if(count===1)return {x:25,y:66};
+  if(count===2)return [{x:28,y:53},{x:21,y:78}][index];
+  return [{x:23,y:52},{x:19,y:65},{x:15,y:78},{x:38,y:59},{x:34,y:76}][index];
 }
 // Consecutive area hits share a cast; every actor finishes before the next starts.
 export function battleSequence(events, action) {
@@ -52,7 +54,7 @@ export function battleSequence(events, action) {
   return groups.map(group => {
     const enemy = typeof group.source === 'number', damage = group.events.some(e => e.type === 'damage');
     const selfHit = group.events.every(e => e.target === 'hero' && e.type === 'damage' && !e.skill) && group.source === 'hero';
-    const cast = !enemy && group.source !== 'burn' && group.source !== 'burn-enemy' && !selfHit &&
+    const cast = group.source !== 'burn' && group.source !== 'burn-enemy' && !selfHit &&
       (group.events.some(e => e.skill) || group.source === 'hero' && ['skill', 'sweep'].includes(action) && damage);
     const pose = cast ? 'skill' : group.events.every(e => e.type === 'break') ? 'hurt' :
       damage && !selfHit && !['burn','burn-enemy'].includes(group.source) ? 'attack' : group.source === 'lan' ? 'charge' : 'guard';

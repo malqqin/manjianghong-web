@@ -1,5 +1,7 @@
-/* Original fengmian.png cover, red selection and cream Java-style menu frames. */
+/* Original cover composition, red selection and cream Java-style menu frames. */
 :root{--shell-red:#a51f19;--shell-gold:#ba8b43;--shell-paper:#ffefce}
+/* Replacement portrait artwork should downsample smoothly; sprites keep their pixel rendering. */
+img[src$="/lfytouxiang.png"],img[src$="/gmltouxiang.png"],img[src$="/gjtouxiang.png"],.dialogue-body .dialogue-portrait-frame img[src$="/lfytouxiang.png"],.dialogue-body .dialogue-portrait-frame img[src$="/gmltouxiang.png"],.dialogue-body .dialogue-portrait-frame img[src$="/gjtouxiang.png"]{image-rendering:auto}
 .header-tools{gap:10px}
 .header-tools .icon-button,.github-link{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
 #settings-button{font:14px var(--native-font);letter-spacing:1px}
@@ -99,3 +101,7 @@
   #location-bar{right:auto;max-width:calc(58% - 160px)}#map-button{position:fixed;right:16px;top:60px;min-height:44px}#flight-button{top:69px;right:16px;min-height:40px}
   .sheet-backdrop[data-kind="game-menu"] .native-menu-list{grid-template-columns:1fr 1fr}.sheet-backdrop[data-kind="game-menu"] .sheet{width:min(100%,560px)}.native-menu-list>button{font-size:16px;min-height:44px}.menu-location{padding:5px 10px;margin-bottom:5px}.cover-entries>button{padding-block:7px}.cover-foot{border:0;padding:0;margin-top:3px}
 }
+
+/* HD textures keep the original logical size, with subpixel movement. */
+#app img,#app #world,#app #battle-scene,#app .sprite-view,#app .battle-slash,#app .effect-frames,#app .native-battle-effect{image-rendering:auto}
+.cover-menu:before,.cover-menu:after{background-size:22px 22px;image-rendering:auto}

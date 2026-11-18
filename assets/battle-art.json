@@ -1,0 +1,126 @@
+{
+  "actors": {
+    "gengjing": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\003-battle-gengjing.png",
+      "frames": 5,
+      "sha256": "351d42124cf6d60d2915a38e098be0731232f3187bbbaf4d8b1dea7af7cc82d3"
+    },
+    "gengml": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters\\004-battle-gengml.png",
+      "frames": 13,
+      "sha256": "7dc9c6bd8b420d791ddd9f86ab18c45a7d86058a9746f1f512a62f0e9276beb9"
+    },
+    "ghost": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\005-battle-ghost.png",
+      "frames": 5,
+      "sha256": "ecafef1eedfe0d6614df2e51b6a70d8a158b04f1e4f02315bfde34eae61a48b5"
+    },
+    "golden": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\006-battle-golden.png",
+      "frames": 5,
+      "sha256": "b2a83fe5b674bf8aeb1f39b057db8d1b7e7712c68005a73157ec67aa0d6afdb4"
+    },
+    "linfy": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters\\007-battle-linfy.png",
+      "frames": 13,
+      "sha256": "2638822fcab4690970b8b2615da98785633e2ab4b0307089bf404e938f1535bb"
+    },
+    "litd": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\008-battle-litd.png",
+      "frames": 5,
+      "sha256": "db9570e6845f62ae2023a6270920e447066909f22cfb783c12e1c44f24f68870"
+    },
+    "mon1": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\009-battle-mon1.png",
+      "frames": 5,
+      "sha256": "f43566d2117ffe4a6aa47c7011a6f4d439b763984489d5bd7b2841c41ce0d547"
+    },
+    "mon2": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\010-battle-mon2.png",
+      "frames": 5,
+      "sha256": "287712d7585392954696f20764b0eb8e57aadb5a92b8506a6d0939d50fb530ee"
+    },
+    "mon4": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\011-battle-mon4.png",
+      "frames": 5,
+      "sha256": "b909986b552c05b68bb6f96d4d3a79ba96eef7c052e9833ae25a70e1febc4e7e"
+    },
+    "nalan_da": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\012-battle-nalan_da.png",
+      "frames": 12,
+      "sha256": "4c0051114e542d568da6b5622d678144ad8c0b866a45003bccc5dece537b874a"
+    },
+    "snake": {
+      "kind": "ai-redraw",
+      "master": "output\\imagegen\\full-20261117\\masters-v2\\013-battle-snake.png",
+      "frames": 5,
+      "sha256": "55b5f1c4ea32da4a7016e6bfdba8e3113fc6c0a4697d76243619ade9fafa4171"
+    },
+    "taimeng": {
+      "kind": "ai-derivative",
+      "master": "output\\imagegen\\full-20261117\\processed\\assets\\native\\battle-taimeng.png",
+      "frames": 5,
+      "sha256": "ff3d04384860d6b4f4d8358741ee34e6334a094c5ce61a1ea6ade6b154ca9883"
+    },
+    "mon3": {
+      "kind": "original-composite",
+      "source": "mon3.png",
+      "frames": 5
+    },
+    "mon5": {
+      "kind": "original-composite",
+      "source": "mon5.png",
+      "frames": 5
+    },
+    "mon6": {
+      "kind": "original-composite",
+      "source": "mon6.png",
+      "frames": 5
+    },
+    "yuelinda": {
+      "kind": "original-composite",
+      "source": "yuelinda.png",
+      "frames": 5
+    },
+    "yuelei": {
+      "kind": "original-composite",
+      "source": "yuelei.png",
+      "frames": 5
+    },
+    "niugao": {
+      "kind": "original-composite",
+      "source": "niugao.png",
+      "frames": 5
+    },
+    "yangzx": {
+      "kind": "original-composite",
+      "source": "yangzx.png",
+      "frames": 5
+    },
+    "liyc": {
+      "kind": "original-composite",
+      "source": "liyc.png",
+      "frames": 5
+    },
+    "shenstm": {
+      "kind": "original-composite",
+      "source": "shenstm.png",
+      "frames": 5
+    },
+    "lqsg": {
+      "kind": "original-composite",
+      "source": "lqsg.png",
+      "frames": 5
+    }
+  }
+}

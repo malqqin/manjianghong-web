@@ -12,7 +12,8 @@ const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost'), pathname = decodeURIComponent(url.pathname);
     const filename = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
-    if (!filename.startsWith(root) || (await stat(filename)).isDirectory()) { response.writeHead(403); response.end('Forbidden'); return; }
+    const relative = path.relative(root, filename);
+    if (relative.startsWith('..') || path.isAbsolute(relative) || relative.split(/[\\/]/).some(part=>part.startsWith('.') || /^(key\.txt|node_modules|tmp)$/i.test(part)) || (await stat(filename)).isDirectory()) { response.writeHead(403); response.end('Forbidden'); return; }
     const body = await readFile(filename);
     response.writeHead(200, { 'Content-Type': mime[path.extname(filename)] || 'application/octet-stream',
       'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
