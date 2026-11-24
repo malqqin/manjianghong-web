@@ -39,7 +39,7 @@
 
 已接入原初始行囊、人物成长、装备条件、秘籍研习、药品作用、商店、敌队及掉落，并按原表计算技能伤害、目标数、异常和施法动画。敌方技能同样播放施法姿态及目标光效，包含技能自疗和减伤变化。普通药和特级药的行动差别来自原版 `o.java`。
 
-仍有实质差异：主线未全面换成原坐标/时间触发器；事件解释器、行动资格、反击、仇恨、混乱及部分持续效果仍有简化；普通失败仍可休整重试；200 杀气绝技所需的原付费扩展尚未适配；引路图、旧物品兼容和剧情赠物仍需继续核对。没有完成六章从头到尾的人工通关，不能称作完全还原。详细范围见 [核对记录](docs/review-20261118.md) 和 [此前的规则审查](docs/original-parity.md)。
+仍有实质差异：主线未全面换成原坐标/时间触发器；事件解释器、行动资格、反击、仇恨及部分持续效果仍有简化；普通失败仍可休整重试；200 杀气绝技所需的原付费扩展尚未适配；引路图、旧物品兼容和剧情赠物仍需继续核对。没有完成六章从头到尾的人工通关，不能称作完全还原。详细范围见 [核对记录](docs/review-20261118.md) 和 [此前的规则审查](docs/original-parity.md)。
 
 ## 存档
 
@@ -60,7 +60,7 @@
 - `exploration.js`、`original-field.js`、`field-motion.js`：原场景对象、事件与旋风；`locomotion.js`：寻路、跟随与地图镜头。
 - `tactical.js`、`presentation.js`、`native-effects.js`：逐人结算、动画、原版合成光效。
 - `story-player.js`、`story-presentation.js`：原作轨道、对白和诗句；`assets/native-story.json` 保存场景与演出数据。
-- `polish.css` 及其他 CSS：电脑、手机、横屏界面；`sw.js`、`precache.json`：离线缓存，当前版本 `mjh-native-35`。
+- `polish.css` 及其他 CSS：电脑、手机、横屏界面；`sw.js`、`precache.json`：离线缓存，当前版本 `mjh-native-36`。
 - `scripts/restore-ai-battle-art.py`：从已有母图恢复战斗帧；`scripts/build-site.mjs`：发布资源检查。
 - `assets/fonts/`：本地霞鹜文楷轻便版及 OFL 许可。
 

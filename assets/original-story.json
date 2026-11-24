@@ -13430,8 +13430,8 @@
       "enemy": "trial",
       "party": null,
       "who": "hero",
-      "x": 22,
-      "y": 6,
+      "x": 7,
+      "y": 10,
       "lines": [
         {
           "who": "story",
@@ -13727,8 +13727,8 @@
       "enemy": null,
       "party": null,
       "who": "hero",
-      "x": 22,
-      "y": 6,
+      "x": 7,
+      "y": 10,
       "lines": [
         {
           "who": "story",

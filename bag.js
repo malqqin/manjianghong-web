@@ -21,7 +21,15 @@ export function openBag(state,ui,title='行囊',selection={tab:'all',id:null}){
  let detail='<div class="bag-empty-detail"><span aria-hidden="true">囊</span><p>轻点物品，查看详情</p><small>装备 · 药品 · 秘籍 · 信物</small></div>';
  if(selected){
   const e=selected,item=e.item,arm=item.originalId==null?null:originalRules.arms[item.originalId];
-  const bonuses=arm?[['攻击',arm.stats[0]===arm.stats[1]?arm.stats[0]:arm.stats[0]+'—'+arm.stats[1]],['防御',arm.stats[2]],['生命',arm.stats[5]],['精气',arm.properties[4]]].filter(([,v])=>v&&v!=='0'):[];
+  const bonuses=arm?[
+    ...(arm.stats[0]&&arm.stats[1]?[['攻击',arm.stats[0]===arm.stats[1]?arm.stats[0]:arm.stats[0]+'—'+arm.stats[1]]]:
+      [['最小攻击',arm.stats[0]],['最大攻击',arm.stats[1]]]),['防御',arm.stats[2]],['生命',arm.stats[5]],['精气',arm.properties[4]],
+    ['生命上限',arm.properties[5]&&arm.properties[5]*100+'%'],
+    ['精气上限',arm.properties[6]&&arm.properties[6]*100+'%'],
+    ['闪避',arm.stats[3]&&arm.stats[3]/100+'%'],['暴击',arm.stats[4]&&arm.stats[4]/100+'%'],
+    ['命中',arm.rates[0]&&arm.rates[0]+'%'],['减伤',arm.rates[1]&&arm.rates[1]+'%'],
+    ...['冰冻','灼烧','混乱'].map((name,i)=>[name+'抗性',arm.status[i][0]&&arm.status[i][0]+'%'])
+  ].filter(([,v])=>v):[];
   detail=`<div class="bag-detail-heading"><div class="bag-detail-art"><img src="${e.art}" alt="${escape(item.name)}"></div><div><small>${escape(item.rarity||slotNames[item.slot]||({manual:'武功秘籍',medicine:'药品'})[e.kind]||'随身物品')}</small><h3>${escape(item.name)}</h3><span>持有 ${e.count} 件</span></div></div><p class="bag-description">${escape(item.description)}</p>${bonuses.length?`<dl class="bag-stats">${bonuses.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`:''}${arm?`<p class="bag-condition">需 ${arm.properties[10]} 级 · ${item.actors.map(a=>partyNames[a]).join('、')}可用</p>`:''}${e.wearers.length?`<p class="bag-wearer">${e.wearers.map(a=>partyNames[a]).join('、')}正在佩戴 · 闲置 ${equipmentAvailable(state,e.key)} 件</p>`:''}${e.kind==='medicine'?`<p class="bag-condition">战斗中${item.properties[9]&1?'消耗一次行动':'不消耗行动'}</p>`:''}<div class="bag-detail-actions">${e.kind==='gear'?`<button class="native-confirm" data-equip="${e.key}">装备 / 卸下</button>`:e.kind==='quest'?'<span>剧情信物，随身保管</span>':`<button class="native-confirm" data-native-use="${e.key}">${e.kind==='manual'?'研习秘籍':'使用药品'}</button>`}</div>`;
  }
  ui.openSheet(title,`<div class="bag-toolbar"><span>随身物品 <b>${entries.length}</b></span><strong>${state.coins.toLocaleString()} <small>两</small></strong></div><div class="bag-tabs" role="group" aria-label="物品分类">${tabs.map(([id,label])=>`<button data-bag-tab="${id}" aria-pressed="${selection.tab===id}">${label}</button>`).join('')}</div><div class="bag-layout"><div class="bag-storage"><div class="bag-grid" aria-label="行囊物品">${cells}${Array.from({length:Math.max(0,20-shown.length)},()=>'<div class="bag-cell empty" aria-hidden="true"></div>').join('')}</div>${!shown.length?'<p class="bag-no-items">此分类暂无物品</p>':''}</div><section class="bag-detail" aria-label="物品详情" aria-live="polite">${detail}</section></div><div class="bag-footer"><small>轻点格子查看 · 标记「装」为已佩戴</small><button id="open-martial">人物与武功 →</button></div>`,'随身珍藏','bag');

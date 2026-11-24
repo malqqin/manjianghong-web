@@ -87,6 +87,13 @@ export function validateSave(input) {
     if(Object.values(j.nativeVars||{}).some(n=>!Number.isFinite(n)))return null;
     if(j.nativeStageIndex!==undefined&&(!Number.isInteger(j.nativeStageIndex)||j.nativeStageIndex<0||j.nativeStageIndex>STORY_COUNT))return null;
     if(Object.entries(j.learned||{}).some(([id,list])=>!['hero','fei','lan'].includes(id)||!Array.isArray(list)||list.some(n=>!Number.isInteger(n)||n<0||n>61)))return null;
+    if(j.owned.includes('liquan')){
+      const target=state.journey, ownsOriginal=j.owned.includes('arm-64');
+      target.owned=[...new Set(j.owned.map(id=>id==='liquan'?'arm-64':id))];
+      target.armCounts={...j.armCounts,'arm-64':ownsOriginal?(j.armCounts?.['arm-64']??1):(j.armCounts?.liquan??1)};
+      delete target.armCounts.liquan;
+      if(j.equipped.weapon==='liquan')target.equipped={...j.equipped,weapon:state.level>=40?'arm-64':null};
+    }
     state.party = state.journey.members.length > 0;
     if((j.rulesVersion||0)<2){
       const target=state.journey;target.items={...(j.items||{})};

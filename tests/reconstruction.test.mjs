@@ -11,7 +11,7 @@ import {actorLevel,characterStats,learnManual,gainExperience}from'../progression
 import {addItem,applyItem}from'../items.js';
 import {equipmentCount,equipmentAvailable,addEquipment,removeEquipment}from'../inventory.js';
 import {scenePortals,routeExit,evaluateCondition,sceneEncounters,encounterAvailable}from'../exploration.js';
-import {scenePrograms,executeNative,storyStage,sceneActorLayout,mainCheckpoint}from'../native-events.js';
+import {scenePrograms,executeNative,storyStage,sceneActorLayout,mainCheckpoint,nativeContactRects}from'../native-events.js';
 import {touchingEncounter}from'../encounters.js';
 import {advanceFieldActor}from'../field-motion.js';
 import {compileGroup,programInstructions}from'../story-presentation.js';
@@ -166,4 +166,13 @@ test('Original field storms patrol, respect collision and chase only in the deco
  advanceFieldActor(e,player,.08,open,{flying:true});assert.equal(e.motion.chasing,false);
  const patrol={x:10,y:10,detectionBounds:[0,0,0,0]};for(let n=0;n<100;n++)advanceFieldActor(patrol,player,.08,open,{rng:()=>.2});
  assert.ok(Math.abs(patrol.x*16+8-168)<=20);assert.equal(patrol.y,10);
+});
+
+
+test('Invisible NPC trigger selects the original event and second contact rectangle',()=>{
+ const actor=native.scenes.s5.actors[17],variables={0:8};
+ assert.equal(scenePrograms(native,'s5',17,variables,[],4).length,0);
+ assert.ok(scenePrograms(native,'s5',17,variables,[],5).some(p=>p.index===2));
+ assert.deepEqual(nativeContactRects(actor,[5]),[{event:5,x:actor.x-41,y:actor.y-21,width:125,height:64}]);
+ assert.equal(scenePrograms(native,'s5',17,{0:7},[],5).length,0);
 });

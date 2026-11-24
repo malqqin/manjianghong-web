@@ -55,6 +55,7 @@
 .sheet #battle-reward,.sheet #treasure-confirm{width:100%;margin-top:12px}
 #app.battle-mode .battle-actor .sprite-view{transform:scale(var(--actor-scale,1.5));image-rendering:auto;filter:drop-shadow(0 4px 3px #19241b66)}
 #app.battle-mode .battle-actor{isolation:isolate}
+#app.battle-mode .battle-abnormal{position:absolute;left:50%;top:50px;transform:translateX(-50%);z-index:2;white-space:nowrap;padding:1px 4px;border-radius:3px;background:#292035;color:#fff;font-size:10px;line-height:1.4}
 #app.battle-mode .battle-actor .actor-label{white-space:nowrap;top:69px;font-size:12px;max-width:100px;overflow:hidden;text-overflow:ellipsis}
 #app.battle-mode .battle-actor.ally .actor-label{right:auto;left:50%;translate:-50% 0;top:69px}
 #app.battle-mode .battle-actor .enemy-hp{top:86px;width:48px}

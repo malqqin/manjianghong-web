@@ -7,6 +7,7 @@ export const partyActors = battle => [{ id: 'hero', name: partyNames.hero, hp: b
   mp: battle.mp, maxMP: battle.maxMP, statuses: battle.statuses, focus: battle.focus,
   guarding: battle.guarding, attackBuff: battle.attackBuff, defenseBuff: battle.defenseBuff,attackBuffPercent:battle.attackBuffPercent,defenseBuffPercent:battle.defenseBuffPercent,reductionChange:battle.reductionChange,reductionTurns:battle.reductionTurns,stats:battle.stats,rage:battle.rage||0 }, ...battle.companions];
 export const availableActors = battle => partyActors(battle).filter(a => a.hp > 0 && !battle.spent.includes(a.id));
+export const blockedByStatus = actor => actor.statuses?.freeze > 0 || actor.statuses?.confuse > 0;
 
 // A command resolves only the selected actor. Uncommanded allies wait for player input.
 export function tacticalTurn(current, action, target, skillId, actorId = current.activeActor, allyTarget = actorId) {
@@ -14,7 +15,7 @@ export function tacticalTurn(current, action, target, skillId, actorId = current
   if (b.outcome) return b;
   const actors = partyActors(b), actor = actors.find(a => a.id === actorId);
   if (!actor || actor.hp <= 0 || b.spent.includes(actorId)) return { ...b, error: '这名队员本回合已行动或已倒下。' };
-  if (!['attack', 'skill', 'sweep', 'guard', 'potion', 'cleanse','item'].includes(action)) return { ...b, error: '未知指令' };
+  if (!['attack', 'skill', 'sweep', 'guard', 'potion', 'cleanse','item','status-turn'].includes(action)) return { ...b, error: '未知指令' };
   if(action==='item'&&!(b.itemCounts?.[Number(skillId)]>0))return {...b,error:'行囊中没有这件药品。'};
   const requested=action==='sweep'?'wildfire':skillId||b.learnedSkills?.[actorId]?.[0]?.id||nativeSkill(actorId).id;
   const skill = nativeSkill(actorId, requested,b);
@@ -34,10 +35,10 @@ export function tacticalTurn(current, action, target, skillId, actorId = current
     if(typeof victim.id==='string')victim.rage=Math.min(victim.stats?.rage||200,(victim.rage||0)+10);
     emit({ source, target: victim.id, amount: dealt, text, type: 'damage', defeated: victim.hp <= 0, skill: move });
   };
-  const nativeStrike=(source,victim,move=null)=>{
+  const nativeStrike=(source,victim,move=null,forcedText=null)=>{
     const modifier=move&&characterRules.skills[move.sourceIndex];
     if(modifier?.rates[1]){victim.reductionChange=modifier.rates[1];victim.reductionTurns=modifier.n;}
-    const hit=originalAttack(source,victim,{skill:move}),text=source.name+' · '+(move?.name||'攻击');
+    const hit=originalAttack(source,victim,{skill:move}),text=forcedText||source.name+' · '+(move?.name||'攻击');
     if(hit.miss){emit({source:source.id,target:victim.id,type:'guard',text:text+' · 未命中',skill:move});return;}
     const record=move&&characterRules.skills[move.sourceIndex],status=victim.statuses||victim;
     for(const [i,name]of ['freeze','burn','confuse'].entries()){
@@ -46,10 +47,40 @@ export function tacticalTurn(current, action, target, skillId, actorId = current
         status[name]=turns;
         // y.java stores one active abnormal state at a time.
         for(const other of ['freeze','burn','confuse'])if(other!==name)status[other]=0;
-        if(record)break;
       }
     }
     damage(victim,hit.amount,source.id,text+(hit.critical?' · 暴击':''),move);
+  };
+  const nativeStatusTurn = (source, team) => {
+    const status=source.statuses||source;
+    if(status.freeze){
+      emit({source:source.id,target:source.id,type:'guard',text:source.name+' · 冰冻，无法行动'});
+      return true;
+    }
+    if(!status.confuse)return false;
+    const targets=team.filter(target=>target!==source&&target.hp>0);
+    const target=targets[Math.floor(Math.random()*targets.length)];
+    if(target){
+      if(typeof source.id==='string')source.rage=Math.min(source.stats?.rage||200,(source.rage||0)+10);
+      nativeStrike(source,target,null,source.name+' · 混乱，攻击'+target.name);
+    }else emit({source:source.id,target:source.id,type:'guard',text:source.name+' · 混乱，无同伴可攻击'});
+    return true;
+  };
+  // y.java f()/g(): advance the current abnormal state on the owner's action,
+  // then roll its resistance for early recovery.
+  const finishNativeAction = source => {
+    if(source.hp<=0)return;
+    const status=source.statuses||source;
+    if(status.burn&&source.hp>1){
+      const amount=Math.min(source.hp-1,Math.trunc(source.maxHP*.1));
+      if(amount>0)damage(source,amount,typeof source.id==='number'?'burn-enemy':'burn',source.name+' · 灼烧');
+    }
+    for(const [i,name] of ['freeze','burn','confuse'].entries()){
+      if(!status[name])continue;
+      status[name]--;
+      const resistance=(source.stats||source.originalStats)?.resistance?.[i]||0;
+      if(status[name]&&resistance&&Math.random()*100<resistance)status[name]=0;
+    }
   };
   const living = () => b.enemies.filter(e => e.hp > 0);
   const selected = living().find(e => e.id === target) || living()[0];
@@ -60,7 +91,11 @@ export function tacticalTurn(current, action, target, skillId, actorId = current
   actor.statuses ||= { freeze:0, burn:0, confuse:0 };
   let freeItem=false;
   const held = actor.statuses.freeze > 0;
-  if (held && action !== 'cleanse') {
+  if (b.native&&nativeStatusTurn(actor,actors)) {
+    // A frozen or confused actor cannot choose a command, including using medicine.
+  } else if (action==='status-turn') {
+    return {...b,error:'这名队员仍可正常行动。'};
+  } else if (held && action !== 'cleanse') {
     actor.statuses.freeze--; emit({ source: actorId, target: actorId, type:'guard', text:actor.name+' · 冰冻，无法行动' });
   } else if (action === 'cleanse') {
     b.antidotes--; actor.statuses = {freeze:0,burn:0,confuse:0}; emit({source:actorId,target:actorId,type:'heal',text:'清平丸 · 解除异常'});
@@ -106,22 +141,29 @@ export function tacticalTurn(current, action, target, skillId, actorId = current
       }
     }
   }
-  if(!freeItem)b.spent.push(actorId); sync();
+  if(!freeItem){
+    b.spent.push(actorId);
+    if(b.native)finishNativeAction(actor);
+  }
+  sync();
   if (!living().length) b.outcome='victory';
   if (!b.outcome && !availableActors(b).length) {
     for (const enemy of living()) {
       if (!actors.some(a=>a.hp>0)) break;
-      if(enemy.burn) { enemy.burn--;const n=b.native?Math.min(enemy.hp-1,Math.trunc(enemy.maxHP*.1)):Math.round(enemy.maxHP*.1);if(n>0)damage(enemy,n,'burn-enemy','灼烧');if(!enemy.hp)continue; }
+      if(enemy.hp<=0)continue;
+      if(b.native&&nativeStatusTurn(enemy,b.enemies)){finishNativeAction(enemy);continue;}
+      if(!b.native&&enemy.burn) { enemy.burn--;const n=b.native?Math.min(enemy.hp-1,Math.trunc(enemy.maxHP*.1)):Math.round(enemy.maxHP*.1);if(n>0)damage(enemy,n,'burn-enemy','灼烧');if(!enemy.hp)continue; }
       if(enemy.freeze) { enemy.freeze--;emit({source:enemy.id,target:enemy.id,type:'guard',text:enemy.name+' · 冰冻，无法行动'});continue; }
       if(enemy.confuse) { enemy.confuse--;damage(enemy,Math.round(enemy.attack*.5),enemy.id,enemy.name+' · 混乱误伤');continue; }
       if(b.native&&enemy.originalStats){
-        const pool=actors.filter(a=>a.hp>0),victim=pool[Math.floor(Math.random()*pool.length)],index=chooseMonsterSkill(enemy),move=index===null?null:decodedSkill(index),record=index===null?null:characterRules.skills[index];
+        const pool=actors.filter(a=>a.hp>0),victim=pool[Math.floor(Math.random()*pool.length)],index=Math.random()*100<(enemy.skillChance??20)?chooseMonsterSkill(enemy):null,move=index===null?null:decodedSkill(index),record=index===null?null:characterRules.skills[index];
         if(record){
           const before=enemy.hp;enemy.hp=Math.min(enemy.maxHP,Math.max(1,enemy.hp+Math.trunc(enemy.maxHP*record.effects[1]/100)+record.effects[0]));
           if(enemy.hp>before)emit({source:enemy.id,target:enemy.id,type:'heal',amount:enemy.hp-before,text:enemy.name+' · '+move.name,skill:move,casterEffect:true});
         }
         if(record&&record.b<=2){for(const ally of living()){const n=Math.min(ally.maxHP-ally.hp,Math.trunc(ally.maxHP*record.e/100)+record.stats[5]);ally.hp+=n;emit({source:enemy.id,target:ally.id,type:'heal',amount:n,text:enemy.name+' · '+move.name,skill:move});}}
         else {const count=move?.targetCount==='all'?pool.length:move?.targetCount||1;for(const target of [victim,...pool.filter(a=>a!==victim)].slice(0,count))nativeStrike(enemy,target,move);}
+        finishNativeAction(enemy);
         continue;
       }
       if((b.round+enemy.id)%4===0 && b.round%3!==0) {emit({source:enemy.id,type:'guard',text:enemy.name+' · 整备'});continue;}
@@ -131,7 +173,7 @@ export function tacticalTurn(current, action, target, skillId, actorId = current
       if(victim.hp>0 && enemy.status && b.round%4===0 && !victim.guarding) victim.statuses[enemy.status]=enemy.status==='freeze'?1:3;
     }
     for(const a of actors) {
-      if(a.hp>0 && a.statuses.burn) {a.statuses.burn--;const n=b.native?Math.min(a.hp-1,Math.trunc(a.maxHP*.1)):Math.ceil(a.maxHP*.1);if(n>0)damage(a,n,'burn',a.name+' · 灼烧');}
+      if(!b.native && a.hp>0 && a.statuses.burn) {a.statuses.burn--;const n=b.native?Math.min(a.hp-1,Math.trunc(a.maxHP*.1)):Math.ceil(a.maxHP*.1);if(n>0)damage(a,n,'burn',a.name+' · 灼烧');}
       a.guarding=false;for(const buff of ['attackBuff','defenseBuff']) if(a[buff]&&! --a[buff])a[buff+'Percent']=0;
       if(a.reductionTurns&&! --a.reductionTurns)a.reductionChange=0;
     }

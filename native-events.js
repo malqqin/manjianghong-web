@@ -29,14 +29,22 @@ export function storyStage(data,steps,index){
 }
 // ss21 programs 5–7: three checkpoints before the Li Yucheng confrontation.
 export function mainCheckpoint(index,stage){return index===63&&stage>=52&&stage<=54?{scene:'ss21',actorIndex:29+stage-52,stage}:null;}
-export function scenePrograms(data,sceneKey,actorIndex,variables,steps){
+export function scenePrograms(data,sceneKey,actorIndex,variables,steps,event=null){
  const scene=data.scenes[sceneKey];if(!scene)return [];
  const mainGroups=new Set(steps.filter(s=>s.scene===sceneKey).flatMap(s=>[...s.lines,...(s.afterLines||[])].map(l=>l.source?.group).filter(g=>g!=null)));
  return scene.programs.map((p,index)=>({index,events:p.conditions,condition:readCondition(p.code).node,items:programInstructions(p.code)})).filter(p=>{
    const atoms=conditionAtoms(p.condition),matches=atoms.some(a=>a.left[0]===1&&a.left[1]===2&&a.op===0&&a.right[1]===actorIndex);
-   if(!matches||!p.events.some(e=>e===4||e===5)||flatten(p.items).some(i=>i.action===11&&mainGroups.has(i.args[3])))return false;
-   const system={0:5,1:scene.actors[actorIndex].sprite,2:actorIndex,15:1};
-   return evaluateCondition(p.condition,variables,system);
+   if(!matches||!p.events.some(e=>event===null?(e===4||e===5):e===event)||flatten(p.items).some(i=>i.action===11&&mainGroups.has(i.args[3])))return false;
+   const system={1:scene.actors[actorIndex].sprite,2:actorIndex,15:1};
+   return p.events.some(e=>(e===4||e===5)&&(event===null||e===event)&&evaluateCondition(p.condition,variables,{...system,0:e}));
+ });
+}
+// l.java g(): invisible actors can trigger from either of two rectangles.
+export function nativeContactRects(actor,events){
+ return events.flatMap(event=>{
+  const [left,top,right,bottom]=actor.bounds.slice(event===4?0:4,event===4?4:8);
+  if(right<=left||bottom<=top)return [];
+  return [{event,x:actor.x+left,y:actor.y+top,width:right-left,height:bottom-top}];
  });
 }
 export function nativeGroupLines(data,key,group){

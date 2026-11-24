@@ -29,7 +29,7 @@ for (const arm of originalRules.arms) {
   equipment['arm-'+arm.index]={name:arm.name,slot,actor,actors,health,mana,originalId:arm.index,rarity:rare?'神兵':'装备',
     attack,defense,price:p[0],
     icon:slot==='weapon'?(p[9]===1?'linglong':'silver'):slot==='ring'?'bronze':'plainjade',
-    art:slot==='armor'||slot==='bracer'?'assets/gear-'+slot+'.svg':rare?'assets/native/relic-'+(slot==='ring'?'shenjie':slot==='jade'?'shenpei':p[9]===1?'shenhuan':p[9]===2?'shensuo':'shenqiang')+'.png':p[3]===0&&p[9]===2?'assets/native/relic-shensuo.png':null,
+    art:slot==='armor'||slot==='bracer'?'assets/gear-'+slot+'.svg':rare?'assets/native/relic-'+(slot==='ring'?'shenjie':slot==='jade'?'shenpei':p[9]===1?'shenhuan':p[9]===2?'shensuo':'shenqiang')+'.png':slot==='weapon'?'assets/native/item-'+(p[9]===1?'ring':p[9]===2?'sword':'spear')+'.png':slot==='ring'?'assets/native/item-ring.png':slot==='jade'?'assets/native/item-jade.png':null,
     description:arm.description+' · '+(actors.length===3?'全队可佩戴':actors.map(id=>({hero:'凌飞云',fei:'耿沐霏',lan:'兰芷萱'})[id]).join('、')+'使用')};
 }
 equipment.polu={name:'破虏剑',slot:'quest',icon:'silver',rarity:'御剑信物',description:'青年剑客赠予的古剑，习得御剑之术后用于飞行。'};
@@ -58,7 +58,7 @@ export function advanceJourney(state, steps) {
   if (step.title === '一块锦鲤玉佩') grant('koi');
   if (step.title === '沐霏相救') grant('wood');
   if (step.title === '亮银枪归来') grant('silver');
-  if (step.title === '神枪与蛇毒') grant('liquan');
+  if (step.title === '神枪与蛇毒') grantEquipment(state,'arm-64');
   if (step.title === '古庙逢君') grantEquipment(state,'polu');
   if (step.title === '临行嘱托') grantEquipment(state,'arm-65',{equip:true});
   if (step.title === '兵器库将倾') grantEquipment(state,'arm-75',{equip:true});
@@ -138,7 +138,8 @@ export function originalEncounter(teamId,step,state,monsterIds=null) {
     landscape:step.map>=4&&step.map<=11||step.map===41?'cave':step.map>=19&&step.map<=35?'camp':'forest',
     enemies:ids.map(id=>{const m=originalRules.monsters[id],sprite=m.sprite.replace('/','');
       return {originalId:id,name:m.name.replace(/\s*\d+级\s*$/,''),sprite,hp:m.stats[5],attack:Math.round((m.stats[0]+m.stats[1])/2),originalStats:monsterStats(m),
-        skills:m.skills,skillRates:m.skillRates,counterRate:m.counterRate,counterType:m.counterType};})};
+        // r.b is the overall cast chance. The extractor originally named this field stealRate.
+        skills:m.skills,skillRates:m.skillRates,skillChance:m.stealRate,counterRate:m.counterRate,counterType:m.counterType};})};
 }
 // e.java: each equipment ID is paired with a percentage; stop after a non-guaranteed success.
 export function encounterLoot(encounter,rng=Math.random) {

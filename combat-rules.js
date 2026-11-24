@@ -10,7 +10,7 @@ export function originalAttack(source,target,{skill=null,rng=Math.random}={}){
  const roll=n=>Math.floor(rng()*n),hit=record?100+(extra[10]||0):a.hit+Math.trunc((a.level-t.level)/3);
  if(roll(100)>=hit)return {amount:0,miss:true};
  const critical=roll(10000)<a.raw[4]+(extra[9]||0),buff=source.attackBuffPercent||0;
- let amount=critical?a.attackMax*2:a.attackMin+roll(a.attackMax-a.attackMin+1);
+ let amount=critical?a.attackMax*2:Math.min(a.attackMin,a.attackMax)+roll(Math.abs(a.attackMax-a.attackMin)+1);
  amount+=Math.trunc(amount*buff/100);
  if(record)amount=record.l?Math.trunc(source.maxHP*(100+record.k)/100):Math.trunc(amount*(100+record.k)/100);
  // The original receiver checks dodge for ordinary attacks, not skill packets.

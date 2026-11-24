@@ -2,7 +2,7 @@ import { SAVE_KEY, clamp, walkable, component, nearestTile, findPath, newGame, v
 import {advanceFieldActor} from './field-motion.js';
 import { chapters, places, characters, entities as rawEntities, objectives, visibleEntity } from './world.js';
 import { facingDirection, rasterActorFrame, animationFrame, battleAnimations, battleEventState, battleFacingScale, battlePosition, battleSequence } from './presentation.js';
-import { touchingEncounter } from './encounters.js';
+import { touchingEncounter, touchesRect } from './encounters.js';
 import { skillSets, nativeSkill, partyNames } from './skills.js';
 import { learnedSkills } from './skills.js';
 import { characterStats, actorLevel, learnedIndices, gainExperience, experienceRequired, learnManual } from './progression.js';
@@ -12,10 +12,10 @@ import { addItem, applyItem, itemRecord } from './items.js';
 import { equipmentAvailable, removeEquipment } from './inventory.js';
 import { openBag, openNativeShop } from './bag.js';
 import { originalItemDrops } from './journey.js';
-import { partyActors, availableActors } from './tactical.js';
+import { partyActors, availableActors, blockedByStatus } from './tactical.js';
 import { NativeBattleEffects, nativeDuration, drawNativeFrame } from './native-effects.js';
 import { scenePortals, routeExit, evaluateCondition, sceneEncounters, encounterAvailable } from './exploration.js';
-import { storyStage, scenePrograms, executeNative, sceneActorLayout, mainCheckpoint } from './native-events.js';
+import { storyStage, scenePrograms,nativeContactRects, executeNative, sceneActorLayout, mainCheckpoint } from './native-events.js';
 import { trackKeys, compileGroup } from './story-presentation.js';
 import { NativeStoryPlayer } from './story-player.js';
 import { spriteRegion } from './raster.js';
@@ -64,9 +64,10 @@ function nativeExploreEntities(){
   if(![5,6,7,12,13,14,15,16,20,22,44,45,46].includes(a.sprite))continue;
   const programs=scenePrograms(storyPlayer.data,key,index,vars,originalStory.steps);if(!programs.length)continue;
   const text=programs.flatMap(p=>p.items).find(i=>[13,14].includes(i.action)),name=text?(scene.strings[text.args[3]]||'').replace(/#[a-f\d]{6}/gi,'').match(/^([^：:“”]{1,8})[：:]/)?.[1]:null;
-  const contact=a.sprite===22&&programs.some(p=>p.events.includes(4)),rect=contact?{x:a.x+a.bounds[0],y:a.y+a.bounds[1],width:a.bounds[2],height:a.bounds[3]}:null;
+  const contactRects=a.sprite===22?[4,5].flatMap(event=>scenePrograms(storyPlayer.data,key,index,vars,originalStory.steps,event).length?nativeContactRects(a,[event]):[]):[];
+  const rect=contactRects[0],contact=!!rect;
   const point=rect?nearestTile(tiles.get(state.map),(rect.x+rect.width/2-8)/16,(rect.y+rect.height/2-8)/16):p;
-  list.push({...common,...point,id:`native-npc-${key}-${index}`,kind:'native-npc',contact,contactRect:rect,discovery:[20,22].includes(a.sprite),sprite:a.sprite===22?undefined:a.sprite,name:name||([20,22].includes(a.sprite)?'探查':[44,45,46].includes(a.sprite)?'机关':'江湖人')});
+  list.push({...common,...point,id:`native-npc-${key}-${index}`,kind:'native-npc',contact,contactRects,discovery:[20,22].includes(a.sprite),sprite:a.sprite===22?undefined:a.sprite,name:name||([20,22].includes(a.sprite)?'探查':[44,45,46].includes(a.sprite)?'机关':'江湖人')});
  }
  nativeEntityCache={key:cacheKey,entities:list};return list;
 }
@@ -309,12 +310,14 @@ function checkEncounterContact() {
   const exit=nearby.find(e=>e.kind==='portal'&&Math.hypot(player.x-(e.x*16+8),player.y-(e.y*16+8))<10);
   if(exit){path=[];destination=null;pendingInteraction=null;interactOriginal(exit);return true;}
   const suppressed = nearby.find(e => e.id === suppressedEncounter);
-  const rect=suppressed?.contactRect,distance=rect?Math.hypot(player.x-clamp(player.x,rect.x,rect.x+rect.width),player.y-clamp(player.y,rect.y,rect.y+rect.height)):suppressed?Math.hypot(player.x-(suppressed.x*16+8),player.y-(suppressed.y*16+8)):Infinity;
+  const rects=suppressed?.contactRects||[],distance=rects.length?
+    Math.min(...rects.map(rect=>Math.hypot(player.x-clamp(player.x,rect.x,rect.x+rect.width),player.y-clamp(player.y,rect.y,rect.y+rect.height)))):
+    suppressed?Math.hypot(player.x-(suppressed.x*16+8),player.y-(suppressed.y*16+8)):Infinity;
   if(distance>36)suppressedEncounter=null;
   const enemy = touchingEncounter(player, nearby, { flying: state.journey.flying, suppressed: suppressedEncounter });
   if (!enemy) return false;
   suppressedEncounter = enemy.id; path = []; destination = null; pendingInteraction = null; stopFollowers();
-  interact(enemy); return true;
+  interact(enemy.contactRects?.length?{...enemy,triggerEvent:enemy.contactRects.find(rect=>touchesRect(player,rect))?.event}:enemy); return true;
 }
 function frame(now) {
   const dt = Math.min((now - previousTime) / 1000, .05); previousTime = now; animTime += dt * 1000;
@@ -501,7 +504,12 @@ function playOriginalStep() {
   if (!q.target) return originalEnding();
   const after = () => {
     const lines = q.afterLines || [], offset = Math.max(0, state.journey.line - q.lines.length);
-    if (offset >= lines.length) return completeOriginalStep();
+    if (offset >= lines.length) {
+      completeOriginalStep();
+      // ss9 program 0 continues directly into the gun-location dialogue after victory.
+      if(q.scene==='ss9'&&q.battleTeams?.[0]===43&&objective().title==='沥泉神枪的下落')return playOriginalStep();
+      return;
+    }
     playStory(lines,completeOriginalStep,offset,q.lines.length);
   };
   if (state.journey.afterBattle === index) return after();
@@ -525,7 +533,10 @@ function playOriginalStep() {
   playStory(q.lines,next,offset,0);
 }
 function interactOriginal(e) {
-  if(e.kind==='native-npc'||e.scripted)return runNativeInteraction(e);
+  if(e.kind==='native-npc'||e.scripted){
+    if(e.contact)suppressedEncounter=e.id;
+    return runNativeInteraction(e);
+  }
   if(e.kind==='portal'){
     const q=objective(),next=originalStory.steps[state.journey.index+1];
     if(q.kind==='travel'&&q.map===state.map&&next&&routeExit(portalGraph,currentSceneKey(),next.scene)?.id===e.id){advanceJourney(state,originalStory.steps);mainGoalCache=null;}
@@ -607,8 +618,8 @@ async function runNativeInteraction(entity){
  };
  try{
   state.journey.nativeVars=variables;
-  const programs=scenePrograms(storyPlayer.data,key,entity.actorIndex,variables,originalStory.steps);
-  if(programs.length)await executeNative(programs[0].items,{variables,system:{0:5,1:entity.nativeActor.sprite,2:entity.actorIndex,15:1},handlers});
+  const programs=scenePrograms(storyPlayer.data,key,entity.actorIndex,variables,originalStory.steps,entity.triggerEvent??null);
+  if(programs.length)await executeNative(programs[0].items,{variables,system:{0:entity.triggerEvent??programs[0].events.find(event=>event===4||event===5),1:entity.nativeActor.sprite,2:entity.actorIndex,15:1},handlers});
   state.journey.nativeVars={...variables};state.journey.nativeStageIndex=startingIndex;renderHUD();saveGame(true);
  }catch(error){console.error(error);toast('这段事件未能完成，请重新交谈。');}
  finally{nativeScriptRunning=false;nativeEntityCache=null;}
@@ -774,6 +785,13 @@ function selectPartyActor(id) {
   battle.activeActor = id; renderBattle();
   $('#battle-log').textContent = `轮到${partyNames[id]} · 选择敌人，然后攻击、施法或防御。`;
 }
+function renderActorStatus(element,status,hp) {
+  let badge=element.querySelector('.battle-abnormal');
+  if(!badge){badge=document.createElement('span');badge.className='battle-abnormal';element.append(badge);}
+  const text=Object.entries({freeze:'冰冻',burn:'灼烧',confuse:'混乱'}).filter(([id])=>status?.[id]>0).map(([id,name])=>name+' '+status[id]).join(' · ');
+  badge.textContent=hp>0?text:'';
+  badge.hidden=!badge.textContent;
+}
 function battleElement(id) { return typeof id === 'number' ? $(`[data-enemy="${id}"]`) : $('#battle-' + id); }
 function updateBattleCursors() {
   if (!battle || !$('#battle-cursors')) return;
@@ -799,17 +817,19 @@ function renderBattle() {
   for (const a of actors) {
     const el = battleElement(a.id); el.classList.toggle('current-actor', a.id===battle.activeActor && !battleBusy);
     el.classList.toggle('spent', battle.spent.includes(a.id));
+    renderActorStatus(el,a.statuses,a.hp);
     el.querySelector('.enemy-hp i').style.width = `${a.hp/a.maxHP*100}%`;
     el.setAttribute('aria-label', `${a.name}，生命 ${a.hp}，精气 ${a.mp}${battle.spent.includes(a.id)?'，已行动':''}`);
     if(a.hp>0 && el.dataset.defeated) { delete el.dataset.defeated; el.classList.remove('fallen'); playBattleAnimation(el,'idle',{loop:true}); }
   }
   for (const e of battle.enemies) {
     const el = $(`[data-enemy="${e.id}"]`), plan = battle.native?{text:'',heavy:false}:intent(e, battle.round);
+    renderActorStatus(el,e,e.hp);
     el.classList.toggle('selected', selectedEnemy === e.id && e.hp > 0); el.disabled = e.hp <= 0;
     el.querySelector('.enemy-hp i').style.width = `${Math.max(0, e.hp) / e.maxHP * 100}%`;
-    el.querySelector('.enemy-intent').textContent = [e.freeze ? '冰冻' : '', e.burn ? '灼烧' : '', e.confuse ? '混乱' : '', plan.text].filter(Boolean).join(' · ');
+    el.querySelector('.enemy-intent').textContent = plan.text;
     el.querySelector('.enemy-intent').classList.toggle('heavy', plan.heavy);
-    el.querySelector('.enemy-intent').classList.toggle('hidden', e.hp <= 0 || !!battle.outcome);
+    el.querySelector('.enemy-intent').classList.toggle('hidden', e.hp <= 0 || !!battle.outcome || !plan.text);
     el.setAttribute('aria-label', e.hp <= 0 ? `${e.name}，已击退` : `${e.name}，生命 ${e.hp} / ${e.maxHP}，意图：${plan.text}${selectedEnemy === e.id ? '，已选中' : ''}`);
   }
   $$('[data-action]').forEach(button => {
@@ -957,7 +977,7 @@ async function showBattleEvent(event) {
 }
 async function takeTurn(action, skillId = 'rainbow', allyTarget = battle?.activeActor) {
   if (!battle || battleBusy || battle.outcome) return false;
-  const actorId = battle.activeActor || 'hero';
+  const actorId = (action==='status-turn'?availableActors(battle).find(blockedByStatus)?.id:battle.activeActor) || 'hero';
   const result = battleTurn(battle, action, selectedEnemy, skillId, actorId, allyTarget);
   if (result.error) {toast(result.error);return false;}
   const sequence = combatSequence, active = () => battle && sequence === combatSequence;
@@ -1009,6 +1029,7 @@ async function takeTurn(action, skillId = 'rainbow', allyTarget = battle?.active
   battleBusy = !!battle.outcome; battlePhase = '';
   $('#battle').dataset.stage = battle.outcome ? 'finished' : 'ready';
   renderBattle();
+  if (!battle.outcome && battle.native && availableActors(battle).some(blockedByStatus)) return takeTurn('status-turn');
   if (!battle.outcome) $('#battle-log').textContent = `轮到${partyNames[battle.activeActor]} · 点选人物可切换，选好目标再出招。`;
   if (battle.outcome) {
     if (battle.outcome === 'victory') await Promise.all(partyActors(battle).filter(a=>a.hp>0).map(a=>playBattleAnimation(battleElement(a.id),'victory',{hold:true})));

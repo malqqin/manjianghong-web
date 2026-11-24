@@ -21,10 +21,13 @@ export function createFieldEncounters(map, ground, spawn, occupied = []) {
   }
   return chosen;
 }
+export const touchesRect=(player,rect)=>player.x>=rect.x-5&&player.x<=rect.x+rect.width+5&&player.y>=rect.y-5&&player.y<=rect.y+rect.height+5;
+
 export function touchingEncounter(player, entities, { flying = false, suppressed = null } = {}) {
   if (flying) return null;
   return entities.find(e=>{
     if(!e.contact||e.id===suppressed)return false;
+    if(e.contactRects?.length)return e.contactRects.some(rect=>touchesRect(player,rect));
     if(e.contactRect){const r=e.contactRect;return player.x>=r.x-5&&player.x<=r.x+r.width+5&&player.y>=r.y-5&&player.y<=r.y+r.height+5;}
     return Math.hypot(player.x-(e.x*16+8),player.y-(e.y*16+8))<=15;
   })||null;
