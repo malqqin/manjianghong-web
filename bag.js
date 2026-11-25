@@ -1,22 +1,29 @@
-import {equipment,itemArt,equipItem,grantEquipment,clampPartyVitals}from'./journey.js';
+import {equipment,equipItem,grantEquipment,clampPartyVitals}from'./journey.js';
 import{equipmentCount,equipmentAvailable,removeEquipment}from'./inventory.js';
 import{itemRecord,applyItem,addItem}from'./items.js';
-import{characterStats}from'./progression.js';
+import{inventoryArt,supplyArt}from'./inventory-art.js';
+import{characterStats,learnManual}from'./progression.js';
 import{partyNames}from'./skills.js';
 import{characterRules}from'./character-rules.js';
 import{originalRules}from'./original-rules.js';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const slotNames={weapon:'武器',armor:'衣甲',bracer:'护腕',ring:'戒指',jade:'玉佩',quest:'信物'};
-// Medicine and manuals share category illustrations; equipment uses its own artwork.
-const supplyArt=index=>'assets/native/item-'+(index>=17&&index<=72?'book':[2,3,4,7].includes(index)?'flower':index===6?'jade':'potion')+'.png';
+const isManual=index=>index>=17&&index<=72;
+const rankLabel=index=>'第'+((index-17)%4+1)+'重';
+const manualOwner=index=>index<33?'hero':index<49?'fei':index<69?'lan':null;
+function manualDetails(index){
+ const skill=characterRules.skills[index-17],rank=(index-17)%4+1,owner=manualOwner(index);
+ return `<p class="bag-condition">${escape(skill.name)} · ${rankLabel(index)} · ${characterRules.minimumLevels[index-17]||1} 级<br>${owner?partyNames[owner]:'全队均可研习'}${rank>1?' · 需先领悟第 '+(rank-1)+' 重':''}</p>`;
+}
 export function openBag(state,ui,title='行囊',selection={tab:'all',id:null}){
  const j=state.journey,actors=['hero',...j.members],slots=a=>a==='hero'?j.equipped:j.companionEquipment?.[a],render=()=>openBag(state,ui,title,selection);
  const entries=[...j.owned.filter(id=>equipmentCount(state,id)>0).map(id=>{
-  const item=equipment[id];return {id:'gear:'+id,key:id,item,count:equipmentCount(state,id),kind:item.slot==='quest'?'quest':'gear',art:itemArt(item),wearers:actors.filter(a=>slots(a)?.[item.slot]===id)};
+  const item=equipment[id];return {id:'gear:'+id,key:id,item,count:equipmentCount(state,id),kind:item.slot==='quest'?'quest':'gear',art:inventoryArt(item),wearers:actors.filter(a=>slots(a)?.[item.slot]===id)};
  }),...Object.entries(j.items||{}).filter(([,n])=>n>0).map(([id,count])=>({id:'item:'+id,key:id,item:itemRecord(id),count,kind:id>=17&&id<=72?'manual':'medicine',art:supplyArt(Number(id)),wearers:[]}))];
  const tabs=[['all','全部'],['gear','装备'],['medicine','药品'],['manual','秘籍'],['quest','信物']],shown=entries.filter(e=>selection.tab==='all'||e.kind===selection.tab);
  const selected=shown.find(e=>e.id===selection.id)||null;
+ const storageScroll=$('.bag-storage')?.scrollTop||0;
  const cells=shown.map(e=>`<button class="bag-cell ${e.item.rarity==='神兵'?'rare':''}" data-bag-item="${e.id}" aria-pressed="${e===selected}" aria-label="${escape(e.item.name)}，${e.count}件${e.wearers.length?'，已装备':''}" title="${escape(e.item.name)}"><img src="${e.art}" alt=""><small>${e.count}</small>${e.wearers.length?'<b>装</b>':''}<span>${escape(e.item.name)}</span></button>`).join('');
  let detail='<div class="bag-empty-detail"><span aria-hidden="true">囊</span><p>轻点物品，查看详情</p><small>装备 · 药品 · 秘籍 · 信物</small></div>';
  if(selected){
@@ -30,9 +37,10 @@ export function openBag(state,ui,title='行囊',selection={tab:'all',id:null}){
     ['命中',arm.rates[0]&&arm.rates[0]+'%'],['减伤',arm.rates[1]&&arm.rates[1]+'%'],
     ...['冰冻','灼烧','混乱'].map((name,i)=>[name+'抗性',arm.status[i][0]&&arm.status[i][0]+'%'])
   ].filter(([,v])=>v):[];
-  detail=`<div class="bag-detail-heading"><div class="bag-detail-art"><img src="${e.art}" alt="${escape(item.name)}"></div><div><small>${escape(item.rarity||slotNames[item.slot]||({manual:'武功秘籍',medicine:'药品'})[e.kind]||'随身物品')}</small><h3>${escape(item.name)}</h3><span>持有 ${e.count} 件</span></div></div><p class="bag-description">${escape(item.description)}</p>${bonuses.length?`<dl class="bag-stats">${bonuses.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`:''}${arm?`<p class="bag-condition">需 ${arm.properties[10]} 级 · ${item.actors.map(a=>partyNames[a]).join('、')}可用</p>`:''}${e.wearers.length?`<p class="bag-wearer">${e.wearers.map(a=>partyNames[a]).join('、')}正在佩戴 · 闲置 ${equipmentAvailable(state,e.key)} 件</p>`:''}${e.kind==='medicine'?`<p class="bag-condition">战斗中${item.properties[9]&1?'消耗一次行动':'不消耗行动'}</p>`:''}<div class="bag-detail-actions">${e.kind==='gear'?`<button class="native-confirm" data-equip="${e.key}">装备 / 卸下</button>`:e.kind==='quest'?'<span>剧情信物，随身保管</span>':`<button class="native-confirm" data-native-use="${e.key}">${e.kind==='manual'?'研习秘籍':'使用药品'}</button>`}</div>`;
+  detail=`<div class="bag-detail-heading"><div class="bag-detail-art"><img src="${e.art}" alt="${escape(item.name)}"></div><div><small>${escape(item.rarity||slotNames[item.slot]||({manual:'武功秘籍',medicine:'药品'})[e.kind]||'随身物品')}</small><h3>${escape(item.name)}</h3><span>持有 ${e.count} 件</span></div></div><p class="bag-description">${escape(item.description)}</p>${e.kind==='manual'?manualDetails(Number(e.key)):''}${bonuses.length?`<dl class="bag-stats">${bonuses.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`:''}${arm?`<p class="bag-condition">需 ${arm.properties[10]} 级 · ${item.actors.map(a=>partyNames[a]).join('、')}可用</p>`:''}${e.wearers.length?`<p class="bag-wearer">${e.wearers.map(a=>partyNames[a]).join('、')}正在佩戴 · 闲置 ${equipmentAvailable(state,e.key)} 件</p>`:''}${e.kind==='medicine'?`<p class="bag-condition">战斗中${item.properties[9]&1?'消耗一次行动':'不消耗行动'}</p>`:''}<div class="bag-detail-actions">${e.kind==='gear'?`<button class="native-confirm" data-equip="${e.key}">装备 / 卸下</button>`:e.kind==='quest'?'<span>剧情信物，随身保管</span>':`<button class="native-confirm" data-native-use="${e.key}">${e.kind==='manual'?'研习秘籍':'使用药品'}</button>`}</div>`;
  }
  ui.openSheet(title,`<div class="bag-toolbar"><span>随身物品 <b>${entries.length}</b></span><strong>${state.coins.toLocaleString()} <small>两</small></strong></div><div class="bag-tabs" role="group" aria-label="物品分类">${tabs.map(([id,label])=>`<button data-bag-tab="${id}" aria-pressed="${selection.tab===id}">${label}</button>`).join('')}</div><div class="bag-layout"><div class="bag-storage"><div class="bag-grid" aria-label="行囊物品">${cells}${Array.from({length:Math.max(0,20-shown.length)},()=>'<div class="bag-cell empty" aria-hidden="true"></div>').join('')}</div>${!shown.length?'<p class="bag-no-items">此分类暂无物品</p>':''}</div><section class="bag-detail" aria-label="物品详情" aria-live="polite">${detail}</section></div><div class="bag-footer"><small>轻点格子查看 · 标记「装」为已佩戴</small><button id="open-martial">人物与武功 →</button></div>`,'随身珍藏','bag');
+ $('.bag-storage').scrollTop=selection.id?storageScroll:0;
  $$('[data-bag-tab]').forEach(button=>button.onclick=()=>{selection={tab:button.dataset.bagTab,id:null};render();});
  $$('[data-bag-item]').forEach(button=>button.onclick=()=>{selection.id=button.dataset.bagItem;render();$(`[data-bag-item="${selection.id}"]`)?.focus({preventScroll:true});});
  $('#open-martial').onclick=()=>ui.characters('hero','skills');
@@ -48,7 +56,13 @@ export function openBag(state,ui,title='行囊',selection={tab:'all',id:null}){
  });
  $$('[data-native-use]').forEach(button=>button.onclick=async()=>{
   const index=Number(button.dataset.nativeUse);if(index>=17&&index<=72){
-   const choice=await ui.prompt('由谁研习',actors.map(a=>partyNames[a]),-1);if(choice<0)return render();return ui.characters(actors[choice],'skills');
+   const owner=manualOwner(index),candidates=actors.filter(a=>!owner||a===owner);
+   if(!candidates.length)return ui.toast('适合研习这本秘籍的人物尚未加入队伍。');
+   const choice=await ui.prompt('由谁研习',candidates.map(a=>partyNames[a]),-1);
+   if(choice<0)return render();
+   const result=learnManual(state,candidates[choice],index);
+   if(result.ok){ui.renderHUD();ui.saveGame();if(!j.items[index])selection.id=null;}
+   render();ui.toast(result.message);return;
   }
   const item=itemRecord(index),all=item.properties[2]===2,choice=all?0:await ui.prompt('交给谁服用',actors.map(a=>partyNames[a]),-1);
   if(choice<0)return render();
@@ -63,14 +77,52 @@ export function openBag(state,ui,title='行囊',selection={tab:'all',id:null}){
 }
 export function openNativeShop(state,ui,kind,shopIndex){
  return new Promise(resolve=>{
-  const stock=[...new Set(characterRules.shops[shopIndex*2]||[])],record=n=>kind===0?originalRules.arms[n]:itemRecord(n),count=n=>kind===0?equipmentAvailable(state,'arm-'+n):state.journey.items?.[n]||0;
+  const arms=kind===0,title=arms?'武器铺':'药铺';
+  const stock=[...new Set(characterRules.shops[shopIndex*2]||[])];
+  const record=n=>arms?originalRules.arms[n]:itemRecord(n);
+  const count=n=>arms?equipmentAvailable(state,'arm-'+n):state.journey.items?.[n]||0;
+  const total=n=>arms?equipmentCount(state,'arm-'+n):count(n);
+  let tab='buy';
   const render=()=>{
-   const selling=kind===0?state.journey.owned.filter(id=>id.startsWith('arm-')&&equipmentAvailable(state,id)>0).map(id=>Number(id.slice(4))):Object.keys(state.journey.items||{}).map(Number).filter(n=>count(n)>0);
-   ui.openSheet('商店',`<div class="wallet"><strong>${state.coins} 两</strong><span>${kind===0?'兵器装备':'药品与秘籍'}</span></div><h3>购入</h3>${stock.map(n=>{const item=record(n);return `<div class="manual-row"><div><strong>${escape(item.name)}</strong><p>${escape(item.description)} · ${item.properties[0]} 两</p></div><button data-native-buy="${n}" ${state.coins<item.properties[0]||(kind===0?equipmentCount(state,'arm-'+n):count(n))>=99?'disabled':''}>购入</button></div>`;}).join('')}<h3>出售</h3>${selling.map(n=>{const item=record(n);return `<div class="manual-row"><div><strong>${escape(item.name)} ×${count(n)}</strong><p>${item.properties[1]} 两</p></div><button data-native-sell="${n}">出售</button></div>`;}).join('')||'<p>没有可出售的物品，已佩戴的装备需先卸下。</p>'}<button id="native-shop-done" class="primary-button">离开商店</button>`,'购入 · 出售');
+   const buying=tab==='buy',scroll=$('.shop-cards')?.scrollTop||0;
+   const selling=arms?state.journey.owned.filter(id=>id.startsWith('arm-')&&equipmentAvailable(state,id)>0).map(id=>Number(id.slice(4))):
+    Object.keys(state.journey.items||{}).map(Number).filter(n=>count(n)>0);
+   const cards=(buying?stock:selling).filter(n=>record(n)).map(n=>{
+    const item=record(n),price=item.properties[buying?0:1],art=arms?inventoryArt(equipment['arm-'+n]):supplyArt(n);
+    const disabled=buying&&(state.coins<price||total(n)>=99);
+    const label=disabled?(total(n)>=99?'已达上限':'银两不足'):buying?'买入':'出售';
+    const category=arms?slotNames[equipment['arm-'+n].slot]:isManual(n)?'秘籍 · '+rankLabel(n):'药品';
+    return `<article class="shop-card"><div class="shop-art"><img src="${art}" alt=""></div><div class="shop-copy">
+     <small>${category} · ${buying?'持有 '+total(n):'可出售 '+count(n)} 件</small><h3>${escape(item.name)}</h3>
+     <p>${escape(item.description)}</p></div><div class="shop-price"><b>${price.toLocaleString()} <small>两</small></b>
+     <button data-shop-item="${n}" ${disabled?'disabled':''}>${label}</button></div></article>`;
+   }).join('');
+   ui.openSheet(title,`<div class="shop-merchant"><div><strong>${arms?'兵器与防具':'药品与武功秘籍'}</strong><p>${arms?'已佩戴的装备卸下后可出售。':'选购补给或研习所需的秘籍。'}</p></div>
+    <div class="shop-balance"><small>随身银两</small><b>${state.coins.toLocaleString()} 两</b></div></div>
+    <div class="bag-tabs shop-tabs" aria-label="交易方式"><button data-shop-tab="buy" aria-pressed="${buying}">买入</button><button data-shop-tab="sell" aria-pressed="${!buying}">出售</button></div>
+    <div class="shop-cards">${cards||'<p class="shop-empty">这里暂时没有可交易的物品。</p>'}</div>
+    <div class="shop-footer"><button id="native-shop-done" class="secondary-button">离开商店</button></div>`,arms?'兵器装备':'医药补给','shop');
+   $('.shop-cards').scrollTop=scroll;
    ui.onDismiss(resolve);
-   $$('[data-native-buy]').forEach(button=>button.onclick=()=>{const n=Number(button.dataset.nativeBuy),item=record(n);if(state.coins<item.properties[0])return;if(kind===0)grantEquipment(state,'arm-'+n);else addItem(state,n);state.coins-=item.properties[0];ui.saveGame();render();});
-   $$('[data-native-sell]').forEach(button=>button.onclick=()=>{const n=Number(button.dataset.nativeSell),item=record(n);if(count(n)<1)return;if(kind===0){if(!removeEquipment(state,'arm-'+n))return;}else state.journey.items[n]--;state.coins+=item.properties[1];ui.saveGame();render();});
+   $$('[data-shop-tab]').forEach(button=>button.onclick=()=>{tab=button.dataset.shopTab;$('.shop-cards').scrollTop=0;render();});
+   $$('[data-shop-item]').forEach(button=>button.onclick=()=>{
+    const n=Number(button.dataset.shopItem),item=record(n);
+    if(buying){
+     const price=item.properties[0];
+     if(state.coins<price||total(n)>=99)return;
+     if(arms)grantEquipment(state,'arm-'+n);else addItem(state,n);
+     state.coins-=price;
+    }else{
+     if(count(n)<1)return;
+     if(arms){if(!removeEquipment(state,'arm-'+n))return;}
+     else state.journey.items[n]--;
+     state.coins+=item.properties[1];
+    }
+    ui.saveGame();render();
+    ui.toast?.((buying?'已买入':'已出售')+item.name);
+   });
    $('#native-shop-done').onclick=ui.closeSheet;
-  };render();
+  };
+  render();
  });
 }

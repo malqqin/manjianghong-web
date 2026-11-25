@@ -20,6 +20,7 @@
   "items.js",
   "inventory.js",
   "bag.js",
+  "inventory-art.js",
   "journey.js",
   "world.js",
   "presentation.js",

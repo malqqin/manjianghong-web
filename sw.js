@@ -1,4 +1,4 @@
-const VERSION = 'mjh-native-36';
+const VERSION = 'mjh-native-37';
 const BASE = new URL('./', self.location.href);
 self.addEventListener('install', event => {
   event.waitUntil((async () => {

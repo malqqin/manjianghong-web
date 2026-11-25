@@ -11,6 +11,7 @@ import { originalRules } from './original-rules.js';
 import { addItem, applyItem, itemRecord } from './items.js';
 import { equipmentAvailable, removeEquipment } from './inventory.js';
 import { openBag, openNativeShop } from './bag.js';
+import { inventoryArt, supplyArt } from './inventory-art.js';
 import { originalItemDrops } from './journey.js';
 import { partyActors, availableActors, blockedByStatus } from './tactical.js';
 import { NativeBattleEffects, nativeDuration, drawNativeFrame } from './native-effects.js';
@@ -20,7 +21,7 @@ import { trackKeys, compileGroup } from './story-presentation.js';
 import { NativeStoryPlayer } from './story-player.js';
 import { spriteRegion } from './raster.js';
 import { createTrail, recordTrail, trailPoint, followTrail, walkPath, cameraPosition, sceneLoader, viewportZoom } from './locomotion.js';
-import { STORY_COUNT, chapterNames, equipment, originalState, journeyObjective, advanceJourney, flightPath, journeyEncounter, canFly, itemArt, grantEquipment, battleRewards } from './journey.js';
+import { STORY_COUNT, chapterNames, equipment, originalState, journeyObjective, advanceJourney, flightPath, journeyEncounter, canFly, grantEquipment, battleRewards } from './journey.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -573,7 +574,7 @@ function promptNative(title,options,cancelValue=options.length-1){
   });
 }
 function nativeShop(kind,shopIndex) {
- return openNativeShop(state,{openSheet,closeSheet,saveGame,onDismiss:callback=>{sheetDismiss=callback;}},kind,shopIndex);
+ return openNativeShop(state,{openSheet,closeSheet,saveGame,toast,onDismiss:callback=>{sheetDismiss=callback;}},kind,shopIndex);
 }
 async function runNativeInteraction(entity){
  if(nativeScriptRunning)return;nativeScriptRunning=true;guideActive=false;path=[];pendingInteraction=null;destination=null;stopFollowers();
@@ -631,7 +632,7 @@ function originalEnding() {
   $('#ending-record').onclick = () => showOriginalJournal();
 }
 function treasureCards(loot) {
-  return loot.map(({id,count=1})=>{const item=equipment[id];return `<article class="treasure-card ${item.rarity==='神兵'?'rare':''}"><div class="treasure-art"><img src="${itemArt(item)}" alt="${item.name}"></div><div><small>${escapeHTML(item.rarity||'装备')} · 收入行囊</small><h3>${escapeHTML(item.name)} <span>×${count}</span></h3><p>${escapeHTML(item.description)}</p></div></article>`;}).join('');
+  return loot.map(({id,count=1})=>{const item=equipment[id];return `<article class="treasure-card ${item.rarity==='神兵'?'rare':''}"><div class="treasure-art"><img src="${inventoryArt(item)}" alt="${item.name}"></div><div><small>${escapeHTML(item.rarity||'装备')} · 收入行囊</small><h3>${escapeHTML(item.name)} <span>×${count}</span></h3><p>${escapeHTML(item.description)}</p></div></article>`;}).join('');
 }
 function showTreasure(loot,title='获得宝物',source='',supplies='') {
   openSheet(title,`<div class="treasure-intro">${loot.some(x=>equipment[x.id].rarity==='神兵')?'金石有灵 · 神兵得主':'行囊添珍 · 江湖有缘'}</div>${treasureCards(loot)}${supplies?`<p class="treasure-supplies">${escapeHTML(supplies)}</p>`:''}<button id="treasure-confirm" class="primary-button">收好 · 继续前行</button>`,source,'treasure');
@@ -646,7 +647,7 @@ function originalCharacters(id='hero',tab='attributes') {
   const attributes=[['生命',`${hp} / ${stats.maxHP}`],['精气',`${mp} / ${stats.maxMP}`],['攻击',`${stats.attackMin}—${stats.attackMax}`],['防御',stats.defense],['命中',stats.hit+'%'],['闪避',stats.dodge.toFixed(2)+'%'],['暴击',stats.critical.toFixed(2)+'%'],['减伤',stats.reduction+'%'],['冰冻抗性',stats.resistance[0]+'%'],['灼烧抗性',stats.resistance[1]+'%'],['混乱抗性',stats.resistance[2]+'%'],['怒气',`${id==='hero'?state.journey.rage||0:vitals.rage||0} / ${stats.rage}`]];
   const locked=skillSets[id].filter(s=>!known.some(k=>k.id===s.id)).map(s=>({...s,at:characterRules.autoLearn[actorIndex].indexOf(s.sourceIndex)}));
   const skillRows=known.map(s=>`<article class="learned-skill"><div><strong>${escapeHTML(s.name)}${s.sourceIndex<56?' · '+s.rank+'重':''}</strong><small>${s.passive?'被动':s.rageCost?'怒气 '+s.rageCost:'精气 '+s.cost}</small></div><p>${escapeHTML(s.description)}</p>${s.sourceIndex<56&&s.rank<4?`<p>下一重：${characterRules.minimumLevels[s.sourceIndex+1]}级 · 研习对应秘籍</p>`:''}</article>`).join('')+locked.map(s=>`<article class="learned-skill locked"><div><strong>${s.name}</strong><small>${s.at}级习得</small></div><p>${s.description}</p></article>`).join('');
-  const manuals=Object.entries(state.journey.items||{}).filter(([n,count])=>count>0&&n>=17&&n<=72).map(([n,count])=>`<div class="manual-row"><div><strong>${escapeHTML(originalRules.items[n].name)} ×${count}</strong><p>${escapeHTML(originalRules.items[n].description)}</p></div><button data-study="${n}">研习</button></div>`).join('');
+  const manuals=Object.entries(state.journey.items||{}).filter(([n,count])=>count>0&&n>=17&&n<=72).map(([n,count])=>`<div class="manual-row"><img class="manual-icon" src="${supplyArt(Number(n))}" alt=""><div><strong>${escapeHTML(originalRules.items[n].name)} ×${count}</strong><p>${escapeHTML(originalRules.items[n].description)}</p></div><button data-study="${n}">研习</button></div>`).join('');
   openSheet('人物',`<div class="character-tabs" role="tablist">${ids.map(a=>`<button data-character="${a}" role="tab" aria-selected="${a===id}">${partyNames[a]}</button>`).join('')}</div><div class="character-heading"><img src="assets/${characters[id].portrait}" alt="${partyNames[id]}"><div><h3>${partyNames[id]}</h3><p>${level}级 · ${characters[id].role}</p><p>阅历 ${id==='hero'?state.xp:state.journey.actorXP?.[id]||0} / ${experienceRequired(level)===Infinity?'已满级':experienceRequired(level)}</p></div></div><div class="character-tabs"><button data-character-tab="attributes" aria-selected="${tab==='attributes'}">属性装备</button><button data-character-tab="skills" aria-selected="${tab==='skills'}">武功秘籍</button></div>${tab==='attributes'?`<div class="attribute-grid">${attributes.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join('')}</div><h3>随身装备</h3><div class="character-gear">${Object.entries({weapon:'武器',armor:'衣甲',bracer:'护腕',ring:'戒指',jade:'玉佩'}).map(([slot,label])=>`<div><small>${label}</small>${equipment[slots?.[slot]]?.name||'未装备'}</div>`).join('')}</div><button id="character-bag" class="secondary-button">整理行囊</button>`:`${skillRows}<h3>随身秘籍</h3>${manuals||'<p>暂无秘籍。探索藏箱、战胜敌人或拜访商人可以取得。</p>'}`}`,'人物属性 · 武功 · 装备');
   $$('[data-character]').forEach(b=>b.onclick=()=>originalCharacters(b.dataset.character,tab));
   $$('[data-character-tab]').forEach(b=>b.onclick=()=>originalCharacters(id,b.dataset.characterTab));

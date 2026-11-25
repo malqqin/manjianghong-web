@@ -172,3 +172,31 @@ html,body{overflow:hidden}
 @media(max-width:600px) and (max-height:700px) and (orientation:portrait){
  .bag-storage{max-height:20dvh}.bag-layout{gap:8px}.bag-detail{padding:10px}.bag-toolbar{padding-bottom:4px}.bag-tabs{padding-bottom:5px;margin-bottom:5px}
 }
+
+.bag-cell{grid-template-rows:minmax(0,1fr) auto;gap:2px;padding:5px 5px 4px}
+.bag-cell img{min-height:0;width:auto;max-width:100%;aspect-ratio:1}
+.bag-cell>span,.bag-cell:focus-visible>span{position:static;display:block;translate:none;margin:0;padding:0;width:100%;overflow:hidden;text-overflow:ellipsis;background:transparent;color:#583d26;text-align:center;font:clamp(9px,1.25vw,12px)/1.2 var(--native-font)}
+.bag-cell small{top:2px;bottom:auto}
+.manual-row .manual-icon{width:44px;height:44px;object-fit:contain;flex:none}
+.manual-row .manual-icon+div{flex:1;min-width:0}
+.sheet-backdrop[data-kind="shop"] .sheet{width:min(100%,830px)}
+.shop-merchant{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:#eee0bc;border:1px solid #c9aa75;border-radius:6px;color:#57432e}
+.shop-merchant strong{color:#713b2b;font-size:17px}
+.sheet .shop-merchant p{margin:4px 0 0;font-size:12px;color:#6e573b}
+.shop-balance{text-align:right;white-space:nowrap}
+.shop-balance small,.shop-balance b{display:block}
+.shop-balance small{font-size:11px;color:#6e573b}
+.shop-balance b{color:#803d2b}
+.shop-tabs{margin:10px 0}
+.shop-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:49dvh;overflow-y:auto;scrollbar-width:thin}
+.shop-card{display:grid;grid-template-columns:54px minmax(0,1fr) auto;align-items:center;gap:9px;padding:8px;background:#fff8e2;border:1px solid #cdb68a;border-radius:5px;min-width:0}
+.shop-art{background:radial-gradient(ellipse,#ebd7a7,#f7e9c8);border-radius:4px}
+.shop-art img{display:block;width:100%;aspect-ratio:1;object-fit:contain}
+.shop-copy small,.shop-price small{font-size:10px;color:#775e41}
+.sheet .shop-copy h3{font-size:15px;color:#783e2b;margin:2px 0}
+.sheet .shop-copy p{font-size:11px;color:#614d36;margin:0;overflow-wrap:anywhere}
+.shop-price{display:grid;justify-items:end;gap:5px;white-space:nowrap;font-size:13px;color:#783e2b}
+.shop-price button{min-height:36px;padding:4px 10px;background:#813c2d;color:#fff4d7;border:1px solid #6b2d20;border-radius:3px}
+.shop-price button:disabled{background:#e9dcc0;color:#6e5941;border-color:#c7b38c;opacity:1}
+.shop-footer{display:flex;justify-content:flex-end;padding-top:10px}
+@media(max-width:650px){.shop-cards{grid-template-columns:1fr}.shop-card{grid-template-columns:46px minmax(0,1fr) auto}}
