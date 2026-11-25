@@ -51,7 +51,7 @@
 
 42 张地图及现有行走、头像、界面等素材已重绘，原版的逻辑坐标、碰撞及动画数据继续使用。本轮从已有 AI 母图恢复 11 套战斗重绘及 1 套衍生图，修复重打包覆盖 AI 图的问题；另有 10 套新增战斗角色仍使用原版部件合成。分类来源见 `assets/battle-art.json`；本轮没有重新调用生图服务。
 
-地图和角色按比例绘制；原版战斗合成动画和部分光效仍取自原始数据。行囊与商店的装备、药品和秘籍图标由 Canvas 绘制，同类型物品按造型、配色与纹饰区分。具体来源、生成记录和适配差异见 [素材来源](素材来源.md)。
+地图和角色按比例绘制；原版战斗合成动画和部分光效仍取自原始数据。行囊、商店和战利品采用重绘的透明图标，涵盖装备、药品和秘籍。具体来源、生成记录和适配差异见 [素材来源](素材来源.md)。
 
 ## 主要文件和验证
 
@@ -60,7 +60,7 @@
 - `exploration.js`、`original-field.js`、`field-motion.js`：原场景对象、事件与旋风；`locomotion.js`：寻路、跟随与地图镜头。
 - `tactical.js`、`presentation.js`、`native-effects.js`：逐人结算、动画、原版合成光效。
 - `story-player.js`、`story-presentation.js`：原作轨道、对白和诗句；`assets/native-story.json` 保存场景与演出数据。
-- `polish.css` 及其他 CSS：电脑、手机、横屏界面；`sw.js`、`precache.json`：离线缓存，当前版本 `mjh-native-37`。
+- `polish.css` 及其他 CSS：电脑、手机、横屏界面；`sw.js`、`precache.json`：离线缓存，当前版本 `mjh-native-39`。
 - `scripts/restore-ai-battle-art.py`：从已有母图恢复战斗帧；`scripts/build-site.mjs`：发布资源检查。
 - `assets/fonts/`：本地霞鹜文楷轻便版及 OFL 许可。
 
